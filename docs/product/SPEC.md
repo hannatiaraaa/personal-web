@@ -24,11 +24,11 @@ From the developer's perspective, three things about this product resist the obv
 
 One rule carries most of the design. Every file is exactly one of three things, and lives in the folder that names it:
 
-| Layer | Folder | Contains | Never contains |
-| --- | --- | --- | --- |
-| Logic | `lib/` | Pure functions, maths, transforms, types | React, DOM, `window`, side effects, async |
-| State | `hooks/` | React state, effects, subscriptions, imperative browser APIs | JSX, business rules, maths |
-| View | `views/`, `components/` | JSX, layout, tokens, composition | Maths, fetching, business rules |
+| Layer | Folder                  | Contains                                                     | Never contains                            |
+| ----- | ----------------------- | ------------------------------------------------------------ | ----------------------------------------- |
+| Logic | `lib/`                  | Pure functions, maths, transforms, types                     | React, DOM, `window`, side effects, async |
+| State | `hooks/`                | React state, effects, subscriptions, imperative browser APIs | JSX, business rules, maths                |
+| View  | `views/`, `components/` | JSX, layout, tokens, composition                             | Maths, fetching, business rules           |
 
 Dependencies point **view → hook → lib**, never back.
 
@@ -64,11 +64,11 @@ Four typed modules own everything the site says.
 ```ts
 type CaseStudy = {
   readonly slug: string;
-  readonly title: string;        // names the mechanism, not the project
-  readonly context: string;      // names the module, never the platform
+  readonly title: string; // names the mechanism, not the project
+  readonly context: string; // names the module, never the platform
   readonly period: string;
-  readonly summary: string;      // also the meta description
-  readonly reported: string;     // in someone else's voice
+  readonly summary: string; // also the meta description
+  readonly reported: string; // in someone else's voice
   readonly actually: readonly string[];
   readonly shipped: readonly string[];
   readonly evidence: readonly { value: string; label: string }[];
@@ -177,15 +177,15 @@ Observable behaviour only: rendered text, response status, head contents, redire
 
 **Unit — `lib/` only, colocated `*.test.ts`.**
 
-| Module | What is asserted |
-| --- | --- |
-| `visual/lib/contagion` | State conservation, boundary reflection, transmission at β=0 and high β, the recovery schedule, burn-out without relapse, endemicity with it, relapse returning to affected, edge index validity, seed reproducibility |
-| `visual/lib/flow-field` | Vogel radii follow √n and reach the rim, consecutive points one golden angle apart, uniform density, swell bounded by its component amplitudes, front peaking at its reach, harvest dimming and extinguishing it, envelope closing at both ends, ripple causality and decay |
-| `visual/lib/pointer-plane` | Ground-plane intersection, refusal of parallel and behind-camera rays, rotation round-trip, distance preservation |
-| `visual/lib/ripple-queue` | Slot ordering, oldest-slot recycling, deliberate presses always landing, drag spacing measured from the last placement |
-| `work/lib/adjacent-case-study` | Next study, wrap, and the two guards — single study, unknown slug |
-| `common/lib/slug` | No whitespace, punctuation collapsed, stability, distinctness across the real titles |
-| `content/page-headers` | Every documented route resolves, routes with their own header return null, trailing slash and casing normalised |
+| Module                         | What is asserted                                                                                                                                                                                                                                                            |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `visual/lib/contagion`         | State conservation, boundary reflection, transmission at β=0 and high β, the recovery schedule, burn-out without relapse, endemicity with it, relapse returning to affected, edge index validity, seed reproducibility                                                      |
+| `visual/lib/flow-field`        | Vogel radii follow √n and reach the rim, consecutive points one golden angle apart, uniform density, swell bounded by its component amplitudes, front peaking at its reach, harvest dimming and extinguishing it, envelope closing at both ends, ripple causality and decay |
+| `visual/lib/pointer-plane`     | Ground-plane intersection, refusal of parallel and behind-camera rays, rotation round-trip, distance preservation                                                                                                                                                           |
+| `visual/lib/ripple-queue`      | Slot ordering, oldest-slot recycling, deliberate presses always landing, drag spacing measured from the last placement                                                                                                                                                      |
+| `work/lib/adjacent-case-study` | Next study, wrap, and the two guards — single study, unknown slug                                                                                                                                                                                                           |
+| `common/lib/slug`              | No whitespace, punctuation collapsed, stability, distinctness across the real titles                                                                                                                                                                                        |
+| `content/page-headers`         | Every documented route resolves, routes with their own header return null, trailing slash and casing normalised                                                                                                                                                             |
 
 **End-to-end — three suites.**
 
