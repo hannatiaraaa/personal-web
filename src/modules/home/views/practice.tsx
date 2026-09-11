@@ -4,11 +4,11 @@ const practice = [
   {
     term: 'Problem framing before code',
     detail:
-      'I take the ambiguous version of the request, find the rule underneath it with the people who live it, write the specification, then build it.',
+      'I take the ambiguous version of the request, find the rule underneath it with the people who live it, write the specification, then build the most ideal implementation through a reliable program.',
   },
   {
     term: 'Designed so the next change is configuration',
-    detail: `Approval hierarchies, spending authority and charts of accounts are configured, not branched per customer. ${figures.customerOrgs} organisations run their own rules with no code change.`,
+    detail: `Approval hierarchies, spending authority and charts of accounts are configured, not branched per customer. Every customer organisation runs its own rules with no code change.`,
   },
   {
     term: 'Release quality as a system',

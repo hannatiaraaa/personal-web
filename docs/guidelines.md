@@ -119,6 +119,31 @@ Two assertions exist because their failure would be public and silent: no supers
 
 No default exports except where a framework requires one (`app/**/page.tsx`, `layout.tsx`, `sitemap.ts`, `robots.ts`, the image loader). Named exports survive renames and grep.
 
+### Barrels
+
+A barrel is `export *`, never a list of names:
+
+```ts
+// modules/work/views/index.ts
+export * from './case-study-header';
+export * from './evidence';
+```
+
+Re-naming every symbol in the barrel is a second place to edit for every export added, and it goes stale without anything failing.
+
+**The star must not flatten the layering.** A module with more than one role gets a barrel per role, which the module barrel then stars — so an import path still says which layer a symbol came from:
+
+```
+modules/work/index.ts          export * from './lib'; './components'; './views'
+modules/work/views/index.ts    the views
+modules/work/lib/index.ts      the pure logic
+```
+
+Two things `export *` costs, and how they are paid:
+
+- It re-exports whatever a file adds later, including things meant to stay module-internal. Module-internal helpers stay unexported, or their file stays out of the barrel.
+- A name collision between two starred files is a build error rather than a lint warning. `bun run typecheck` is what catches it, so it runs in the gate before anything else compiles.
+
 Every magic number gets a name. `MAX_DPR = 2` says what 2 is; `2` does not.
 
 ## Performance rules

@@ -21,7 +21,7 @@ export function WorkingStyle() {
       </p>
       <p className='prose-page text-body text-ink-muted mt-4'>
         Based in {identity.location} ({identity.timezone}), {positioning.overlap}. {positioning.availability} in
-        field-service, operations, HR/payroll or fintech software.
+        field-service, operations, HR/payroll, fintech, edutech, or other software industries.
       </p>
       <div className='mt-6 flex flex-wrap items-center gap-x-6 gap-y-3'>
         <Link

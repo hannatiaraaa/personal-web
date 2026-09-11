@@ -176,14 +176,20 @@ function transmit(population: Population, params: ModelParams, random: () => num
   const link = params.linkRadius * params.linkRadius;
   const edges: Edges = [];
 
+  // Widest of the two, so neither gate is silently capped by the other. They
+  // are independent settings and a link radius above the contact radius is a
+  // plausible tuning choice.
+  const reach = Math.max(contact, link);
+
   for (let i = 0; i < size; i += 1) {
     for (let j = i + 1; j < size; j += 1) {
       const dx = x[i]! - x[j]!;
       const dy = y[i]! - y[j]!;
       const distance = dx * dx + dy * dy;
-      if (distance > contact) continue;
+      if (distance > reach) continue;
 
       if (distance < link) edges.push(i, j);
+      if (distance > contact) continue;
 
       const iInfectious = state[i] === State.Affected;
       const jInfectious = state[j] === State.Affected;

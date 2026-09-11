@@ -14,8 +14,8 @@ export function SiteFooter() {
       <div className='mx-auto max-w-5xl px-5 py-10 sm:px-8'>
         <p className='legend'>Contact</p>
         <p className='text-body text-ink-muted mt-3 max-w-xl'>
-          {positioning.availability} in field-service, operations, HR/payroll or fintech software. I answer every
-          message that names the role and the country you can employ from.
+          {positioning.availability} in any research, product, or technology industry. I answer every message that names
+          the role and the country you can employ from.
         </p>
 
         <ul className='mt-5 flex flex-wrap gap-x-5 gap-y-2'>
@@ -39,9 +39,11 @@ export function SiteFooter() {
           the case studies are written out here rather than linked to a commit.
         </p>
 
+        {/* No year. The page is statically rendered, so `new Date()` here is
+            build time — the footer would keep claiming last year until someone
+            redeployed, and a stale date is worse than no date. */}
         <p className='text-micro text-ink-faint mt-8 font-mono'>
-          {identity.location} · {identity.timezone} · Remote since {identity.remoteSince} · {new Date().getFullYear()}{' '}
-          {identity.name}
+          {identity.location} · {identity.timezone} · Remote since {identity.remoteSince} · © {identity.name}
         </p>
       </div>
     </footer>

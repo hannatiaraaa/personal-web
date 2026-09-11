@@ -21,8 +21,14 @@ const MAX_DPR = 2;
 const SEED = 20260911;
 /** Frames between readout updates. React does not belong in the frame loop. */
 const REPORT_EVERY = 6;
-/** Frames to settle before drawing the single static frame for reduced motion. */
-const SETTLE_FRAMES = 420;
+/**
+ * Frames to settle before drawing the static frame for reduced motion. Enough
+ * that the first cohort has passed through recovery, so the still frame shows
+ * the endemic mix rather than the seed. Stepped off the commit, because the
+ * pair pass is O(n²) and the people who get this path are the ones who asked
+ * for less work, not more.
+ */
+const SETTLE_FRAMES = 300;
 
 type Palette = {
   susceptible: string;
@@ -53,13 +59,20 @@ type Options = {
   generation: number;
 };
 
+/** What the setup effect hands to the effect that starts and stops the loop. */
+type Controls = {
+  start: () => void;
+  stop: () => void;
+};
+
 /**
  * Drives the contagion canvas. Owns the frame loop, the canvas sizing and the
  * palette; owns no model rules — those are in `lib/contagion`.
  *
- * The loop only runs while the figure is on screen, the tab is foregrounded and
- * the visitor has not asked for reduced motion. Under reduced motion it draws
- * one settled frame and stops.
+ * Two effects on purpose. The first builds the population and the canvas and
+ * must not re-run when the figure scrolls past: rebuilding would reseed the
+ * epidemic, and a model that restarts every time it leaves the viewport can
+ * never show that it settles. The second only starts and stops the loop.
  */
 export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null>, options: Options) {
   const [counts, setCounts] = useState<Tally>(EMPTY_TALLY);
@@ -67,6 +80,7 @@ export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null
   const reducedMotion = useReducedMotion();
   const pageVisible = usePageVisible();
   const inViewport = useInViewport(canvasRef);
+  const shouldAnimate = !reducedMotion && pageVisible && inViewport;
 
   // Read inside the loop rather than restarting it when a control moves.
   const betaRef = useRef(options.beta);
@@ -74,7 +88,7 @@ export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null
   const runningRef = useRef(options.running);
   runningRef.current = options.running;
 
-  const shouldAnimate = !reducedMotion && pageVisible && inViewport;
+  const controlsRef = useRef<Controls | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -89,28 +103,13 @@ export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null
     let palette = readPalette(canvas);
     let width = 0;
     let height = 0;
+    // The last frame drawn, so a resize can repaint it rather than blank it.
+    let lastEdges: Edges = [];
 
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
-      const rect = canvas.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resize();
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(canvas);
-
-    // The palette comes from CSS tokens, so a theme change has to re-read it.
-    const themeObserver = new MutationObserver(() => {
-      palette = readPalette(canvas);
-    });
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    const step = () => stepPopulation(population, { ...DEFAULT_PARAMS, beta: betaRef.current }, random);
 
     const draw = (people: Population, edges: Edges) => {
+      lastEdges = edges;
       context.clearRect(0, 0, width, height);
 
       context.strokeStyle = palette.link;
@@ -166,51 +165,99 @@ export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null
       context.globalAlpha = 1;
     };
 
-    if (reducedMotion) {
-      let edges: Edges = [];
-      for (let frame = 0; frame < SETTLE_FRAMES; frame += 1) {
-        edges = stepPopulation(population, { ...DEFAULT_PARAMS, beta: betaRef.current }, random);
-      }
-      draw(population, edges);
-      setCounts(tally(population));
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Assigning width or height clears the canvas, and ResizeObserver fires
+      // once on observe(), so without this the figure blanks itself on mount.
+      draw(population, lastEdges);
+    };
 
-      return () => {
-        resizeObserver.disconnect();
-        themeObserver.disconnect();
-      };
-    }
+    resize();
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas);
+
+    const repaint = () => draw(population, lastEdges);
+
+    // The palette comes from CSS tokens, so a theme change has to re-read it —
+    // from the toggle, and from the system for a visitor who never used it.
+    const applyPalette = () => {
+      palette = readPalette(canvas);
+      repaint();
+    };
+
+    const themeObserver = new MutationObserver(applyPalette);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    systemTheme.addEventListener('change', applyPalette);
 
     let frameHandle = 0;
     let sinceReport = 0;
 
     const loop = () => {
-      if (runningRef.current) {
-        const edges = stepPopulation(population, { ...DEFAULT_PARAMS, beta: betaRef.current }, random);
-        draw(population, edges);
-
-        sinceReport += 1;
-        if (sinceReport >= REPORT_EVERY) {
-          sinceReport = 0;
-          setCounts(tally(population));
-        }
+      // A paused loop that keeps scheduling itself is a loop running when
+      // nobody is looking. Pausing stops the frames; Play starts them again.
+      if (!runningRef.current) {
+        frameHandle = 0;
+        return;
       }
+
+      draw(population, step());
+
+      sinceReport += 1;
+      if (sinceReport >= REPORT_EVERY) {
+        sinceReport = 0;
+        setCounts(tally(population));
+      }
+
       frameHandle = requestAnimationFrame(loop);
     };
 
-    if (shouldAnimate) {
-      frameHandle = requestAnimationFrame(loop);
-    } else {
-      // Not animating yet, but the figure should not be blank.
-      draw(population, stepPopulation(population, DEFAULT_PARAMS, random));
+    const controls: Controls = {
+      start: () => {
+        if (!frameHandle) frameHandle = requestAnimationFrame(loop);
+      },
+      stop: () => {
+        if (frameHandle) cancelAnimationFrame(frameHandle);
+        frameHandle = 0;
+      },
+    };
+    controlsRef.current = controls;
+
+    // First paint. Settling is stepped off the commit so a long synchronous
+    // pass never blocks it.
+    const settleHandle = requestAnimationFrame(() => {
+      const frames = reducedMotion ? SETTLE_FRAMES : 1;
+      let edges: Edges = [];
+      for (let frame = 0; frame < frames; frame += 1) edges = step();
+
+      draw(population, edges);
       setCounts(tally(population));
-    }
+    });
 
     return () => {
-      if (frameHandle) cancelAnimationFrame(frameHandle);
+      cancelAnimationFrame(settleHandle);
+      controls.stop();
+      controlsRef.current = null;
       resizeObserver.disconnect();
       themeObserver.disconnect();
+      systemTheme.removeEventListener('change', applyPalette);
     };
-  }, [canvasRef, options.generation, reducedMotion, shouldAnimate]);
+  }, [canvasRef, options.generation, reducedMotion]);
+
+  // Starting and stopping is all this one does — the scene outlives it.
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    if (shouldAnimate && options.running) controls.start();
+    else controls.stop();
+  }, [shouldAnimate, options.running]);
 
   return { counts, reducedMotion, agentCount: AGENT_COUNT };
 }

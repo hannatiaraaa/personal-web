@@ -1,3 +1,4 @@
+import type { DiagramKind } from '@/modules/visual/components/diagrams';
 import { figures } from './facts';
 
 /**
@@ -26,7 +27,7 @@ export type CaseStudy = {
   readonly evidence: readonly { readonly value: string; readonly label: string }[];
   readonly evidenceNote?: string;
   readonly stack: readonly string[];
-  readonly diagram?: 'draft-ownership' | 'tax-ladder';
+  readonly diagram?: DiagramKind;
 };
 
 export const caseStudies: readonly CaseStudy[] = [

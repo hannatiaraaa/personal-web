@@ -1,1 +1,2 @@
-export { CvDocument } from './views/cv-document';
+export * from './components';
+export * from './views';

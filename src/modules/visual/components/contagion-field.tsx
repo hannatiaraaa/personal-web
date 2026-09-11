@@ -92,6 +92,13 @@ export function ContagionField() {
         </div>
       </div>
 
+      {reducedMotion && (
+        <p className='border-line text-micro text-ink-faint border-t px-4 py-2 font-mono'>
+          Still frame — motion is switched off in your settings. The model was run forward before it was drawn, so this
+          is the level it settles at. Move beta or reset to redraw.
+        </p>
+      )}
+
       <figcaption className='border-line text-meta text-ink-muted border-t px-4 py-3'>
         Contact inside a radius transmits with probability <span className='font-mono'>beta</span>. An affected agent
         moves to recovering, then recovered, and a recovered agent can relapse straight back to affected. That relapse

@@ -77,7 +77,7 @@ export const headlineFigures: readonly Figure[] = [
   { value: '100+', label: 'vessels running the platform' },
   { value: '1,000+', label: 'merged pull requests' },
   { value: '1,000+', label: 'real users' },
-  { value: '6 yrs', label: 'in production software, 5 remote' },
+  { value: '6 years', label: 'in production software, 5 remote' },
 ] as const;
 
 export const figures = {

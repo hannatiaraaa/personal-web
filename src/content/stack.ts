@@ -18,7 +18,7 @@ export type StackGroup = {
 export const stackGroups: readonly StackGroup[] = [
   {
     title: 'Reach for daily',
-    note: 'What I am writing this week, across five repositories.',
+    note: 'What I am writing this week, across multiple repositories.',
     items: [
       'TypeScript',
       'React Native',
@@ -30,6 +30,7 @@ export const stackGroups: readonly StackGroup[] = [
       'Bun',
       'MySQL',
       'Sequelize',
+      'shadcn/ui',
       'Tailwind v4',
       'TanStack Query',
       'Playwright',
@@ -100,7 +101,6 @@ export const stackGroups: readonly StackGroup[] = [
       'Redux Toolkit',
       'Redux Saga',
       'Drizzle',
-      'shadcn/ui',
       'next-intl',
       'MDX',
       'three.js',

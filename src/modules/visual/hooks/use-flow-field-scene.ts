@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -64,6 +64,11 @@ function isDarkTheme(): boolean {
  * ripple bookkeeping in `lib/ripple-queue` — so everything with a rule in it is
  * unit-tested, and this file is wiring.
  *
+ * Two effects on purpose. The first builds the scene and must not re-run when
+ * the hero scrolls past — rebuilding recompiles the shaders, recomputes the
+ * pool and resets the clock, so the swell would jump backwards every time the
+ * tab regained focus. The second only starts and stops the loop.
+ *
  * The loop stops when the canvas leaves the viewport or the tab goes to the
  * background. Under reduced motion the water stands still and only a ripple the
  * visitor places redraws it: motion they asked for, not motion they asked to be
@@ -76,6 +81,11 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
   const shouldAnimate = !reducedMotion && pageVisible && inViewport;
 
   const [pointCount, setPointCount] = useState(POOL_POINTS);
+
+  // Read inside the loop, so a visibility change never rebuilds the scene.
+  const animatingRef = useRef(shouldAnimate);
+  animatingRef.current = shouldAnimate;
+  const controlsRef = useRef<{ start: () => void; stop: () => void } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -124,6 +134,12 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
     camera.position.set(...CAMERA.position);
     camera.lookAt(...CAMERA.target);
 
+    let clock = STILL_TIME;
+    const queue = new RippleQueue();
+    const pointer = { roll: 0, targetRoll: 0 };
+
+    const render = () => renderer.render(scene, camera);
+
     const applyTheme = () => {
       const dark = isDarkTheme();
       // The ramp runs quiet → energetic, and energy has to gain contrast against
@@ -140,6 +156,13 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
       material.uniforms.uOpacity!.value = dark ? 0.92 : 0.95;
       material.needsUpdate = true;
     };
+
+    /** Re-reads the tokens and repaints, for a theme change with the loop stopped. */
+    const applyThemeAndRepaint = () => {
+      applyTheme();
+      render();
+    };
+
     applyTheme();
 
     const resize = () => {
@@ -152,22 +175,20 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
       material.uniforms.uPixelRatio!.value = dpr;
       camera.aspect = clientWidth / clientHeight;
       camera.updateProjectionMatrix();
+      // setSize resets the drawing buffer, and ResizeObserver fires once on
+      // observe(), so without this the pool blanks itself on mount whenever the
+      // loop is not already running.
+      render();
     };
-    resize();
 
+    resize();
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
 
-    const themeObserver = new MutationObserver(applyTheme);
+    const themeObserver = new MutationObserver(applyThemeAndRepaint);
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
-    systemTheme.addEventListener('change', applyTheme);
-
-    let clock = STILL_TIME;
-    const queue = new RippleQueue();
-    const pointer = { roll: 0, targetRoll: 0 };
-
-    const render = () => renderer.render(scene, camera);
+    systemTheme.addEventListener('change', applyThemeAndRepaint);
 
     const drop = (event: PointerEvent, rect: DOMRect, deliberate: boolean) => {
       const ndc = new Vector3(
@@ -185,7 +206,7 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
       ripples[slot.index]!.set(slot.x, slot.z, clock, 1);
 
       // Standing still: the placed ripple is the only reason to repaint.
-      if (!shouldAnimate) {
+      if (!animatingRef.current) {
         material.uniforms.uTime!.value = clock;
         render();
       }
@@ -220,24 +241,42 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
       frameHandle = requestAnimationFrame(renderFrame);
     };
 
-    if (shouldAnimate) {
-      frameHandle = requestAnimationFrame(renderFrame);
-    } else {
-      render();
-    }
+    const controls = {
+      start: () => {
+        if (frameHandle) return;
+        // A fresh baseline, or the first frame after a pause would advance the
+        // clock by however long the page sat idle.
+        lastTime = 0;
+        frameHandle = requestAnimationFrame(renderFrame);
+      },
+      stop: () => {
+        if (frameHandle) cancelAnimationFrame(frameHandle);
+        frameHandle = 0;
+      },
+    };
+
+    controlsRef.current = controls;
+    render();
 
     return () => {
-      if (frameHandle) cancelAnimationFrame(frameHandle);
+      controls.stop();
+      controlsRef.current = null;
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       resizeObserver.disconnect();
       themeObserver.disconnect();
-      systemTheme.removeEventListener('change', applyTheme);
+      systemTheme.removeEventListener('change', applyThemeAndRepaint);
       geometry.dispose();
       material.dispose();
       renderer.dispose();
     };
-  }, [canvasRef, shouldAnimate, reducedMotion]);
+  }, [canvasRef, reducedMotion]);
+
+  // Starting and stopping is all this one does — the scene outlives it.
+  useEffect(() => {
+    if (shouldAnimate) controlsRef.current?.start();
+    else controlsRef.current?.stop();
+  }, [shouldAnimate]);
 
   return { reducedMotion, pointCount };
 }

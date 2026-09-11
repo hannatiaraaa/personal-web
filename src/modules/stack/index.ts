@@ -1,2 +1,1 @@
-export { StackGroups } from './views/stack-groups';
-export { Delivery } from './views/delivery';
+export * from './views';
