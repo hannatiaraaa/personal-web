@@ -79,8 +79,8 @@ export const caseStudies: readonly CaseStudy[] = [
       'Multi-currency throughout, and the whole thing delivered inside the ERP requisition revamp rather than bolted beside it.',
     ],
     evidence: [
-      { value: figures.erpTicketsAcrossRepos, label: 'tickets across four repositories' },
-      { value: figures.repositories, label: 'repositories in the product' },
+      { value: figures.repositories, label: 'repositories the change had to land across' },
+      { value: figures.sapDeliveryWeeks, label: 'to deliver the ERP integration' },
     ],
     evidenceNote:
       'Collapsing the rule into one ladder is what makes it checkable. A rule per level is a rule per level to test.',

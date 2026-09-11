@@ -92,8 +92,9 @@ export const figures = {
   nativeDefectsResolved: '20+',
   bugReportReduction: '~30%',
   bothAppsReleasedWithin: 'six months',
-  designQuestionsResolved: '32',
-  erpTicketsAcrossRepos: '19',
+  designQuestionsResolved: '50+',
+  workstreamsOwned: 'five+',
+  sapDeliveryWeeks: 'about two weeks of development, two of verification',
   repositories: 'five',
   publications: 'two',
 } as const;
@@ -133,6 +134,8 @@ export const supersededFigures: readonly string[] = [
   '191 specs',
   '138 guarded',
   '899',
+  '32 open design questions',
+  '19 tickets',
   'three fleets',
   'three customer fleets',
 ] as const;
