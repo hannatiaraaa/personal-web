@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/common/components/page-header';
 import { CaseStudyGrid, EarlierWork } from '@/modules/work';
 
 export const metadata: Metadata = {
@@ -11,11 +10,6 @@ export const metadata: Metadata = {
 export default function WorkPage() {
   return (
     <div className='space-y-16'>
-      <PageHeader
-        legend='Selected work'
-        title='Each of these is one problem that turned out to be something else'
-        lead='The reported version of a problem is rarely the problem. Each one here is written from the report down to the mechanism that closed it.'
-      />
       <CaseStudyGrid />
       <EarlierWork />
     </div>

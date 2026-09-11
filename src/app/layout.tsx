@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import { mono, sans } from '@/common/lib/fonts';
 import { identity, positioning } from '@/content/facts';
+import { RouteHeader } from '@/common/components/route-header';
 import { SiteHeader } from '@/common/components/site-header';
 import { SiteFooter } from '@/common/components/site-footer';
 import { themeInitScript } from '@/common/components/theme-toggle';
@@ -90,7 +91,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           id='main'
           className='mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16'
         >
-          {children}
+          {/* The gap only exists when a route has a header; with one child the
+              space-y has nothing to sit between. */}
+          <div className='space-y-16'>
+            <RouteHeader />
+            {children}
+          </div>
         </main>
         <SiteFooter />
       </body>

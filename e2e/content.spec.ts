@@ -217,3 +217,37 @@ test.describe('the hero', () => {
     expect(body).not.toContain('recruiter');
   });
 });
+
+test.describe('the route header comes from the layout', () => {
+  // It used to be repeated in four pages. Hoisting it means the layout has to
+  // put exactly one on the routes that want one, and none on the routes that
+  // bring their own.
+  for (const [route, title] of [
+    ['/work', 'Each of these is one problem that turned out to be something else'],
+    ['/stack', 'Grouped by what I would reach for on Monday'],
+    ['/about', 'learned my way to the end of the pipeline'],
+    ['/cv', 'Hanna Tiara Andarlia'],
+  ] as const) {
+    test(`${route} gets exactly one header, with its own title`, async ({ page }) => {
+      await page.goto(route);
+
+      await expect(page.locator('h1')).toHaveCount(1);
+      await expect(page.locator('h1')).toContainText(title);
+    });
+  }
+
+  test('the home page keeps its own masthead and gains no second header', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('h1')).toHaveText('Hanna Tiara Andarlia');
+  });
+
+  test('a case study keeps its own header, not the work index one', async ({ page }) => {
+    await page.goto('/work/offline-draft-ownership');
+
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('h1')).toContainText('Offline drafts had no owner');
+    await expect(page.getByText('Each of these is one problem')).toHaveCount(0);
+  });
+});

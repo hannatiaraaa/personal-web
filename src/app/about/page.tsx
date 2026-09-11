@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import { brandSentence } from '@/content/facts';
-import { PageHeader } from '@/common/components/page-header';
 import { Arc, Intro, Mathematics, WorkingStyle } from '@/modules/about';
 
 export const metadata: Metadata = {
@@ -12,10 +10,6 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className='space-y-16'>
-      <PageHeader
-        legend='About'
-        title={brandSentence}
-      />
       <Intro />
       <Arc />
       <Mathematics />
