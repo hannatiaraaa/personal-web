@@ -21,7 +21,15 @@ function Frame({
   children: React.ReactNode;
 }) {
   return (
-    <figure className="my-8 overflow-x-auto rounded-lg border border-line bg-surface p-4 sm:p-6">
+    <figure
+      // The diagram scrolls sideways on narrow screens, so the scroll container
+      // is focusable — otherwise a keyboard user cannot reach the right-hand
+      // half of it at all.
+      tabIndex={0}
+      role="group"
+      aria-label={`Diagram: ${title}`}
+      className="my-8 overflow-x-auto rounded-lg border border-line bg-surface p-4 sm:p-6"
+    >
       <svg
         viewBox={viewBox}
         role="img"
