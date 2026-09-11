@@ -107,7 +107,7 @@ export const caseStudies: readonly CaseStudy[] = [
       'Earlier, the breaking change that introduced permission handling across every feature, and the supervisor role that scopes record visibility by department.',
     ],
     evidence: [
-      { value: figures.releaseCases, label: 'repeatable release cases' },
+      { value: figures.releaseCases, label: 'real users' },
       { value: figures.permissionChecks, label: 'authorization decisions per run' },
       { value: figures.reviewsGiven, label: "reviews on teammates' pull requests" },
     ],
@@ -126,11 +126,11 @@ export const caseStudies: readonly CaseStudy[] = [
     actually: [
       'The first customer had one approver, hard-coded. The second customer had a hierarchy, and the request arrived as a bug about their approvals being wrong.',
       'Branching per customer is the move that works today and compounds forever: each fleet adds a branch, no branch can safely be removed, and the second-order cost is that nobody can answer "what are this customer\'s rules" without reading code.',
-      'The rule underneath was not a rule about approvals at all. It was that a customer\'s approval hierarchy, spending authority and chart of accounts are *their* operating procedure — they change without asking us, and they belong in configuration, not in a release.',
+      "The rule underneath was not a rule about approvals at all. It was that a customer's approval hierarchy, spending authority and chart of accounts are *their* operating procedure — they change without asking us, and they belong in configuration, not in a release.",
       'Getting that right meant sitting with operations, purchasing and finance staff and working out what the rule really was before specifying anything.',
     ],
     shipped: [
-      'An approval engine the business configures itself: sequential and non-sequential ladders, per-approver spending authority, mandatory price checks, price guards above a budget owner\'s limit, and super-approver auto-approval.',
+      "An approval engine the business configures itself: sequential and non-sequential ladders, per-approver spending authority, mandatory price checks, price guards above a budget owner's limit, and super-approver auto-approval.",
       'Bypass states rendered honestly in the interface. When a ladder is short-circuited the screen says so, because an approval trail that hides its own exceptions is worse than no trail.',
       'The specification and the architecture decision records first, then the implementation across shared contracts, the API, the web dashboard and the mobile app — one change landing coherently across four surfaces rather than four surfaces drifting.',
     ],

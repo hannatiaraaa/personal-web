@@ -17,14 +17,14 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/70 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-5 sm:gap-6 sm:px-8">
         <Link
           href="/"
           aria-label={`${identity.name} — home`}
           className="font-mono text-meta font-semibold tracking-[0.14em] text-ink uppercase"
         >
-          Hanna<span className="text-signal">.</span>
+          Hanna<span className="signal-text">.</span>
         </Link>
 
         <nav aria-label="Main" className="flex flex-1 items-center gap-0.5 sm:gap-1">
@@ -42,7 +42,12 @@ export function SiteHeader() {
                 {route.label}
                 {/* Active state is an underline as well as a colour, so it does
                     not rely on colour alone. */}
-                {active && <span aria-hidden="true" className="mt-0.5 block h-px bg-signal" />}
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="mt-0.5 block h-0.5 rounded-full bg-linear-to-r from-sky-high to-signal-cyan"
+                  />
+                )}
               </Link>
             );
           })}

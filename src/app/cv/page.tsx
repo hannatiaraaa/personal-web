@@ -11,16 +11,19 @@ export const metadata: Metadata = {
 
 function Section({ legend, children }: { legend: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-line pt-7">
-      <h2 className="legend">{legend}</h2>
-      <div className="mt-4">{children}</div>
+    <section className="reveal">
+      <div className="flex items-center gap-3">
+        <span aria-hidden="true" className="h-3 w-0.5 rounded-full bg-linear-to-b from-sky-high to-signal-cyan" />
+        <h2 className="legend">{legend}</h2>
+      </div>
+      <div className="mt-5">{children}</div>
     </section>
   );
 }
 
 export default function CvPage() {
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <PageHeader
         legend={`${identity.brandLine} · ${identity.stackLine}`}
         title={identity.name}
@@ -31,7 +34,7 @@ export default function CvPage() {
           Drive item id, which was neither indexable nor durable. */}
       <a
         href={resumePdf}
-        className="inline-flex items-center gap-2 rounded-md border border-line-strong px-4 py-2.5 text-meta font-medium text-ink transition-colors hover:bg-surface-sunk"
+        className="btn-primary"
       >
         <DownloadIcon />
         Download as PDF
@@ -49,7 +52,7 @@ export default function CvPage() {
         <ul className="prose-page space-y-3 text-body text-ink-muted">
           {highlights.map((item) => (
             <li key={item.slice(0, 40)} className="flex gap-3">
-              <span aria-hidden="true" className="mt-[0.6em] h-1 w-3 shrink-0 bg-signal" />
+              <span aria-hidden="true" className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br from-sky-high to-signal-cyan" />
               <span>{item}</span>
             </li>
           ))}
@@ -57,7 +60,7 @@ export default function CvPage() {
       </Section>
 
       <Section legend="Experience">
-        <div className="space-y-10">
+        <div className="space-y-12">
           {roles.map((role) => (
             <article key={`${role.title}-${role.organisation}`}>
               <h3 className="text-h3 font-semibold text-ink">
@@ -73,7 +76,7 @@ export default function CvPage() {
               <ul className="prose-page mt-4 space-y-2.5 text-meta text-ink-muted">
                 {role.bullets.map((bullet) => (
                   <li key={bullet.slice(0, 40)} className="flex gap-3">
-                    <span aria-hidden="true" className="mt-[0.55em] h-1 w-3 shrink-0 bg-line-strong" />
+                    <span aria-hidden="true" className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-line-strong" />
                     <span>{bullet}</span>
                   </li>
                 ))}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { brandSentence, education, figures, identity, positioning, publications } from '@/content/facts';
 import { PageHeader } from '@/components/page-header';
+import { ContagionField } from '@/components/contagion-field';
 import { ArrowIcon } from '@/components/icons';
 
 export const metadata: Metadata = {
@@ -35,7 +36,7 @@ const arc = [
 
 export default function AboutPage() {
   return (
-    <div className="space-y-14">
+    <div className="space-y-16">
       <PageHeader legend="About" title={brandSentence} />
 
       <section className="prose-page text-body text-ink-muted">
@@ -59,23 +60,30 @@ export default function AboutPage() {
       {/* The arc, because "full-stack" without a path through it is a claim
           rather than a history. */}
       <section aria-labelledby="arc">
-        <h2 id="arc" className="border-b border-line pb-4 text-h2 font-semibold tracking-[-0.02em] text-ink">
+        <p className="legend">The arc</p>
+        <h2 id="arc" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
           How the range was actually acquired
         </h2>
-        <ol className="mt-2">
+        <ol className="mt-8 space-y-4">
           {arc.map((step) => (
-            <li key={step.period} className="border-b border-line py-6 last:border-0">
-              <p className="tnum font-mono text-micro text-ink-faint">{step.period}</p>
-              <h3 className="mt-2 text-h3 font-semibold text-ink">{step.title}</h3>
-              <p className="prose-page mt-2 text-meta text-ink-muted">{step.body}</p>
+            <li key={step.period} className="card reveal relative overflow-hidden p-5 sm:p-6">
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-0.5 bg-linear-to-b from-sky-high to-signal-cyan"
+              />
+              <p className="tnum font-mono text-micro text-signal">{step.period}</p>
+              <h3 className="mt-2 text-h3 font-semibold tracking-[-0.015em] text-ink">{step.title}</h3>
+              <p className="prose-page mt-2.5 text-meta text-ink-muted">{step.body}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <section aria-labelledby="maths" className="border-t border-line pt-8">
-        <h2 id="maths" className="text-h2 font-semibold tracking-[-0.02em] text-ink">
-          Before software, mathematics
+      <section aria-labelledby="maths">
+        <hr className="rule-fade" />
+        <p className="legend mt-10">Before software</p>
+        <h2 id="maths" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
+          Mathematics, and the habit it left behind
         </h2>
         <p className="prose-page mt-4 text-body text-ink-muted">
           {education.degree}, {education.institution} ({education.years}), in {education.note}. {figures.publications}{' '}
@@ -84,17 +92,29 @@ export default function AboutPage() {
           but it is where the habit comes from: find the rule underneath the thing that was reported, write it down,
           then check it.
         </p>
-        <ul className="mt-5 space-y-3 text-meta text-ink-muted">
+        <div className="mt-8">
+          <ContagionField />
+        </div>
+
+        <ul className="mt-8 space-y-3 text-meta text-ink-muted">
           {publications.map((paper) => (
-            <li key={paper.title}>
-              {paper.title}. <span className="text-ink-faint">{paper.venue}</span>, {paper.year}.
+            <li key={paper.title} className="flex gap-3">
+              <span
+                aria-hidden="true"
+                className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br from-sky-high to-signal-cyan"
+              />
+              <span>
+                {paper.title}. <span className="text-ink-faint">{paper.venue}</span>, {paper.year}.
+              </span>
             </li>
           ))}
         </ul>
       </section>
 
-      <section aria-labelledby="remote" className="border-t border-line pt-8">
-        <h2 id="remote" className="text-h2 font-semibold tracking-[-0.02em] text-ink">
+      <section aria-labelledby="remote">
+        <hr className="rule-fade" />
+        <p className="legend mt-10">Working style</p>
+        <h2 id="remote" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
           Remote, and written-first
         </h2>
         <p className="prose-page mt-4 text-body text-ink-muted">
@@ -109,7 +129,7 @@ export default function AboutPage() {
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link
             href="/cv"
-            className="group flex items-center gap-2 rounded-md border border-line-strong px-4 py-2.5 text-meta font-medium text-ink transition-colors hover:bg-surface-sunk"
+            className="btn-primary group"
           >
             Read the full CV
             <ArrowIcon className="transition-transform group-hover:translate-x-0.5" />

@@ -5,33 +5,42 @@ type Figure = {
 
 type Props = {
   figures: readonly Figure[];
-  /** `panel` for the home masthead, `inline` inside a case study. */
+  /** `panel` for a masthead, `inline` inside a case study section. */
   variant?: 'panel' | 'inline';
 };
 
 /**
- * The evidence row. Figures are the argument this site makes, so they get
- * tabular numerals, the mono face, and enough room to be read as data rather
- * than as decoration.
+ * Figures are the argument this site makes, so they get the mono face, tabular
+ * numerals and enough room to read as data. The label is rendered once for
+ * assistive tech and once visually, because the visual pairing is what carries
+ * the meaning and a bare number would announce nothing.
  */
 export function FigureRow({ figures, variant = 'panel' }: Props) {
+  const isPanel = variant === 'panel';
+
   return (
     <dl
       className={
-        variant === 'panel'
-          ? 'grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4'
-          : 'grid grid-cols-2 gap-5 sm:grid-cols-4'
+        isPanel
+          ? 'grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius)] border border-line bg-line sm:grid-cols-4'
+          : 'grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4'
       }
     >
       {figures.map((figure) => (
         <div
           key={`${figure.value}-${figure.label}`}
-          className={variant === 'panel' ? 'bg-surface px-4 py-4' : ''}
+          className={isPanel ? 'bg-surface px-4 py-5 transition-colors hover:bg-surface-sunk' : ''}
         >
           <dt className="sr-only">{figure.label}</dt>
           <dd>
-            <span className="tnum block font-mono text-h2 font-medium text-ink">{figure.value}</span>
-            <span className="mt-1 block text-meta leading-snug text-ink-muted" aria-hidden="true">
+            <span
+              className={`tnum block font-mono font-medium tracking-[-0.02em] ${
+                isPanel ? 'signal-text text-h2' : 'text-h3 text-ink'
+              }`}
+            >
+              {figure.value}
+            </span>
+            <span aria-hidden="true" className="mt-1.5 block text-meta leading-snug text-ink-muted">
               {figure.label}
             </span>
           </dd>

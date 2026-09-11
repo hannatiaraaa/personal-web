@@ -10,7 +10,7 @@ const links = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t border-line">
+    <footer className="mt-24 border-t border-line bg-surface-sunk/40">
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
         <p className="legend">Contact</p>
         <p className="mt-3 max-w-xl text-body text-ink-muted">
@@ -33,6 +33,11 @@ export function SiteFooter() {
             </li>
           ))}
         </ul>
+
+        <p className="mt-6 max-w-xl text-meta text-ink-faint">
+          My public repositories are from 2020–2023. Everything since is in private company repositories, which is why
+          the case studies are written out here rather than linked to a commit.
+        </p>
 
         <p className="mt-8 font-mono text-micro text-ink-faint">
           {identity.location} · {identity.timezone} · Remote since {identity.remoteSince} ·{' '}

@@ -27,9 +27,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /** The four parts, in the order the work actually happened. */
 function Part({ legend, children }: { legend: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-line pt-7">
-      <p className="legend">{legend}</p>
-      <div className="prose-page mt-4 text-body text-ink-muted">{children}</div>
+    <section className="reveal">
+      <div className="flex items-center gap-3">
+        <span aria-hidden="true" className="h-3 w-0.5 rounded-full bg-linear-to-b from-sky-high to-signal-cyan" />
+        <p className="legend">{legend}</p>
+      </div>
+      <div className="prose-page mt-5 text-body text-ink-muted">{children}</div>
     </section>
   );
 }
@@ -43,13 +46,13 @@ export default async function CaseStudyPage({ params }: Props) {
   const next = caseStudies.at((index + 1) % caseStudies.length);
 
   return (
-    <article className="space-y-10">
+    <article className="space-y-12">
       <header>
         <Link
           href="/work"
-          className="font-mono text-micro text-ink-muted transition-colors hover:text-ink"
+          className="font-mono text-micro text-ink-muted uppercase transition-colors hover:text-signal"
         >
-          ← ALL WORK
+          ← All work
         </Link>
         <p className="legend mt-6">
           {study.context} · {study.period}
@@ -62,9 +65,9 @@ export default async function CaseStudyPage({ params }: Props) {
 
       {/* Reported gets its own visual weight — it is the claim the rest of the
           page argues with. */}
-      <section className="rounded-lg border border-line bg-surface-sunk p-5 sm:p-6">
+      <section className="card overflow-hidden bg-linear-to-br from-signal-wash to-surface p-6 sm:p-7">
         <p className="legend">How it was reported</p>
-        <blockquote className="mt-3 text-lead text-ink">&ldquo;{study.reported}&rdquo;</blockquote>
+        <blockquote className="mt-3 text-pretty text-lead text-ink">&ldquo;{study.reported}&rdquo;</blockquote>
       </section>
 
       <Part legend="What it actually was">
@@ -78,7 +81,7 @@ export default async function CaseStudyPage({ params }: Props) {
         <ul className="space-y-3">
           {study.shipped.map((item) => (
             <li key={item.slice(0, 40)} className="flex gap-3">
-              <span aria-hidden="true" className="mt-[0.6em] h-1 w-3 shrink-0 bg-signal" />
+              <span aria-hidden="true" className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br from-sky-high to-signal-cyan" />
               <span>{item}</span>
             </li>
           ))}
@@ -88,18 +91,22 @@ export default async function CaseStudyPage({ params }: Props) {
       <Part legend="Evidence">
         <FigureRow figures={study.evidence} variant="inline" />
         {study.evidenceNote && <p className="mt-6">{study.evidenceNote}</p>}
-        <p className="mt-6 font-mono text-micro text-ink-faint">{study.stack.join(' · ')}</p>
+        <ul className="mt-7 flex flex-wrap gap-2">
+          {study.stack.map((item) => (
+            <li key={item} className="chip text-micro">
+              {item}
+            </li>
+          ))}
+        </ul>
       </Part>
 
       {next && (
-      <nav aria-label="Next case study" className="border-t border-line pt-7">
-        <Link href={`/work/${next.slug}`} className="group block">
+      <nav aria-label="Next case study">
+        <Link href={`/work/${next.slug}`} className="card card-interactive group block p-5 sm:p-6">
           <p className="legend">Next</p>
-          <p className="mt-2 flex items-baseline gap-2 text-h3 font-semibold text-ink">
-            <span className="underline decoration-transparent decoration-1 underline-offset-4 transition-colors group-hover:decoration-signal">
-              {next.title}
-            </span>
-            <ArrowIcon className="shrink-0 text-signal opacity-0 transition-opacity group-hover:opacity-100" />
+          <p className="mt-2.5 flex items-baseline justify-between gap-4 text-h3 font-semibold tracking-[-0.015em] text-ink">
+            <span>{next.title}</span>
+            <ArrowIcon className="shrink-0 text-signal transition-transform duration-300 group-hover:translate-x-1" />
           </p>
         </Link>
       </nav>

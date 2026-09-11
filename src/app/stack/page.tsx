@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function StackPage() {
   return (
-    <div className="space-y-14">
+    <div className="space-y-16">
       <PageHeader
         legend="Stack"
         title="Grouped by what I would reach for on Monday"
@@ -19,19 +19,20 @@ export default function StackPage() {
 
       <div className="space-y-12">
         {stackGroups.map((group) => (
-          <section key={group.title} aria-labelledby={group.title}>
-            <div className="flex flex-col gap-2 border-b border-line pb-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
-              <h2 id={group.title} className="text-h2 font-semibold tracking-[-0.02em] text-ink">
+          <section key={group.title} aria-labelledby={group.title} className="reveal">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+              <h2 id={group.title} className="flex items-center gap-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-0.5 rounded-full bg-linear-to-b from-sky-high to-signal-cyan"
+                />
                 {group.title}
               </h2>
               <p className="max-w-md text-meta text-ink-muted sm:text-right">{group.note}</p>
             </div>
             <ul className="mt-5 flex flex-wrap gap-2">
               {group.items.map((item) => (
-                <li
-                  key={item}
-                  className="rounded-md border border-line bg-surface px-2.5 py-1.5 font-mono text-meta text-ink"
-                >
+                <li key={item} className="chip">
                   {item}
                 </li>
               ))}
@@ -40,15 +41,17 @@ export default function StackPage() {
         ))}
       </div>
 
-      <section aria-labelledby="process" className="border-t border-line pt-8">
-        <h2 id="process" className="text-h2 font-semibold tracking-[-0.02em] text-ink">
+      <section aria-labelledby="process">
+        <hr className="rule-fade" />
+        <p className="legend mt-10">Delivery</p>
+        <h2 id="process" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
           How it gets delivered
         </h2>
-        <dl className="mt-6 grid gap-7 sm:grid-cols-2">
+        <dl className="mt-8 grid gap-4 sm:grid-cols-2">
           {process.map((item) => (
-            <div key={item.title}>
-              <dt className="text-h3 font-semibold text-ink">{item.title}</dt>
-              <dd className="mt-2 text-meta text-ink-muted">{item.detail}</dd>
+            <div key={item.title} className="card reveal p-5 sm:p-6">
+              <dt className="text-h3 font-semibold tracking-[-0.015em] text-ink">{item.title}</dt>
+              <dd className="mt-2.5 text-meta text-ink-muted">{item.detail}</dd>
             </div>
           ))}
         </dl>

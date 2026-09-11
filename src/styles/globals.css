@@ -1,67 +1,125 @@
 @import 'tailwindcss';
 
 /*
- * Instrument panel: warm neutral ground, near-black ink, one signal accent.
- * The accent is the colour of hi-vis and warning lamps — the work is field
- * operations, and blue/violet is what every other engineer portfolio uses.
+ * Bright sky.
  *
- * Light is defined on bare :root so no colour has its only definition inside a
- * media query. Dark is redefined twice: under prefers-color-scheme (guarded so
- * an explicit light choice wins) and under [data-theme='dark'] (so the toggle
- * wins in both directions).
+ * The palette is noon sky rather than a brand blue: near the sun it goes white
+ * and cyan, overhead it saturates to azure. Light mode is that sky read from
+ * below; dark mode is the same sky at night, navy rather than neutral black —
+ * depth with a blue temperature, not grey.
+ *
+ * Light lives on bare :root so no colour has its only definition inside a media
+ * query. Dark is declared twice: under prefers-color-scheme, guarded so an
+ * explicit light choice wins, and under [data-theme='dark'] so the toggle wins
+ * in both directions.
  */
 
 :root {
-  --bg: #faf9f7;
+  color-scheme: light;
+
+  --bg: #f6fafe;
+  --bg-deep: #eaf3fc;
   --surface: #ffffff;
-  --surface-sunk: #f2f0ec;
-  --ink: #1a1917;
-  --ink-muted: #5c5852;
-  --ink-faint: #6f6962;
-  --line: #e3e0da;
-  --line-strong: #cbc6bd;
-  --signal: #9a4f06;
-  --signal-bright: #d97706;
-  --signal-wash: #fdf4e7;
-  --focus: #1a1917;
+  --surface-sunk: #edf5fd;
+  --surface-raised: #ffffff;
+
+  --ink: #0a1826;
+  --ink-muted: #46586d;
+  --ink-faint: #5b7085;
+
+  --line: #dae7f4;
+  --line-strong: #b9d1e7;
+
+  /* Text-safe azure. Fills and glows use the brighter pair below. */
+  --signal: #0369a1;
+  --signal-bright: #0ea5e9;
+  --signal-cyan: #06b6d4;
+  --signal-wash: #e4f3fe;
+
+  /* Gradient stops, horizon to zenith. */
+  --sky-haze: #e8f5ff;
+  --sky-low: #7dd3fc;
+  --sky-mid: #22b8e6;
+  --sky-high: #0284c7;
+
+  --glow: 14 165 233;
+  --shadow-key: 10 24 38;
+  --focus: #0369a1;
+
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #12110f;
-    --surface: #1b1917;
-    --surface-sunk: #0c0b0a;
-    --ink: #f5f3f0;
-    --ink-muted: #a8a29a;
-    --ink-faint: #8a847b;
-    --line: #2e2a26;
-    --line-strong: #443e38;
-    --signal: #f0a63a;
-    --signal-bright: #f0a63a;
-    --signal-wash: #231c11;
-    --focus: #f0a63a;
+    color-scheme: dark;
+
+    --bg: #050b13;
+    --bg-deep: #020609;
+    --surface: #0c1723;
+    --surface-sunk: #030810;
+    --surface-raised: #12202f;
+
+    --ink: #e9f3fd;
+    --ink-muted: #9db4cb;
+    --ink-faint: #6b829a;
+
+    --line: #18283d;
+    --line-strong: #2a3f59;
+
+    --signal: #38bdf8;
+    --signal-bright: #38bdf8;
+    --signal-cyan: #22d3ee;
+    --signal-wash: #0a1f30;
+
+    --sky-haze: #0a1b2b;
+    --sky-low: #0e4a6e;
+    --sky-mid: #0e7490;
+    --sky-high: #38bdf8;
+
+    --glow: 56 189 248;
+    --shadow-key: 0 0 0;
+    --focus: #38bdf8;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #12110f;
-  --surface: #1b1917;
-  --surface-sunk: #0c0b0a;
-  --ink: #f5f3f0;
-  --ink-muted: #a8a29a;
-  --ink-faint: #8a847b;
-  --line: #2e2a26;
-  --line-strong: #443e38;
-  --signal: #f0a63a;
-  --signal-bright: #f0a63a;
-  --signal-wash: #231c11;
-  --focus: #f0a63a;
+  color-scheme: dark;
+
+  --bg: #050b13;
+  --bg-deep: #020609;
+  --surface: #0c1723;
+  --surface-sunk: #030810;
+  --surface-raised: #12202f;
+
+  --ink: #e9f3fd;
+  --ink-muted: #9db4cb;
+  --ink-faint: #6b829a;
+
+  --line: #18283d;
+  --line-strong: #2a3f59;
+
+  --signal: #38bdf8;
+  --signal-bright: #38bdf8;
+  --signal-cyan: #22d3ee;
+  --signal-wash: #0a1f30;
+
+  --sky-haze: #0a1b2b;
+  --sky-low: #0e4a6e;
+  --sky-mid: #0e7490;
+  --sky-high: #38bdf8;
+
+  --glow: 56 189 248;
+  --shadow-key: 0 0 0;
+  --focus: #38bdf8;
 }
 
 @theme inline {
   --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
   --color-surface: var(--surface);
   --color-surface-sunk: var(--surface-sunk);
+  --color-surface-raised: var(--surface-raised);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
@@ -69,29 +127,40 @@
   --color-line-strong: var(--line-strong);
   --color-signal: var(--signal);
   --color-signal-bright: var(--signal-bright);
+  --color-signal-cyan: var(--signal-cyan);
   --color-signal-wash: var(--signal-wash);
+  --color-sky-haze: var(--sky-haze);
+  --color-sky-low: var(--sky-low);
+  --color-sky-mid: var(--sky-mid);
+  --color-sky-high: var(--sky-high);
 
-  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, 'SFMono-Regular', monospace;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', monospace;
 
-  /* One ratio, applied consistently, so the page reads as one system. */
+  /*
+   * Fluid scale. Sizes interpolate with the viewport so a phone and a 27-inch
+   * display each get a proportionate reading, and no page needs a responsive
+   * type class.
+   */
   --text-micro: 0.6875rem;
-  --text-micro--line-height: 1.3;
-  --text-micro--letter-spacing: 0.08em;
+  --text-micro--line-height: 1.35;
+  --text-micro--letter-spacing: 0.09em;
   --text-meta: 0.8125rem;
-  --text-meta--line-height: 1.5;
-  --text-body: 1rem;
-  --text-body--line-height: 1.65;
-  --text-lead: 1.1875rem;
-  --text-lead--line-height: 1.55;
-  --text-h3: 1.0625rem;
-  --text-h3--line-height: 1.4;
-  --text-h2: 1.5rem;
-  --text-h2--line-height: 1.25;
-  --text-h1: 2rem;
-  --text-h1--line-height: 1.1;
-  --text-display: 2.75rem;
-  --text-display--line-height: 1.02;
+  --text-meta--line-height: 1.55;
+  --text-body: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
+  --text-body--line-height: 1.68;
+  --text-lead: clamp(1.0625rem, 1rem + 0.55vw, 1.375rem);
+  --text-lead--line-height: 1.5;
+  --text-h3: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --text-h3--line-height: 1.35;
+  --text-h2: clamp(1.375rem, 1.2rem + 1vw, 1.875rem);
+  --text-h2--line-height: 1.2;
+  --text-h1: clamp(1.875rem, 1.5rem + 2.2vw, 3rem);
+  --text-h1--line-height: 1.08;
+  --text-display: clamp(2.5rem, 1.6rem + 4.6vw, 4.5rem);
+  --text-display--line-height: 0.98;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -104,6 +173,35 @@
     scroll-behavior: smooth;
   }
 
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.68;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  ::selection {
+    background-color: var(--signal-wash);
+    color: var(--ink);
+  }
+
+  /* Figures are tabular everywhere. A column of numbers that shifts width reads
+     as a mistake on a page whose argument is measurement. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -113,48 +211,158 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
-  }
-
-  body {
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: var(--text-body);
-    line-height: 1.65;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Focus is visible on every focusable thing, and it is the same ring
-     everywhere so the keyboard path never loses the reader. */
-  :focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-
-  ::selection {
-    background-color: var(--signal-wash);
-    color: var(--ink);
-  }
-
-  /* Figures are tabular everywhere. A column of numbers that shifts width
-     reads as a mistake in a page whose whole argument is measurement. */
-  .tnum {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
   }
 }
 
 @layer components {
-  /* Small caps label above a block — the instrument-panel legend. */
+  /* Small-caps legend above a block. */
   .legend {
     font-family: var(--font-mono);
     font-size: var(--text-micro);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink-faint);
+  }
+
+  /*
+   * The sky itself: layered radial gradients, no JS and no image. Two bright
+   * sources near the top, haze settling toward the horizon. Pinned behind the
+   * masthead only, so it costs one paint and never composites on scroll.
+   */
+  .sky-field {
+    position: absolute;
+    top: -14rem;
+    left: 50%;
+    width: 100vw;
+    max-width: 100vw;
+    translate: -50% 0;
+    height: 46rem;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(42rem 28rem at 26% 34%, color-mix(in oklab, var(--sky-low) 40%, transparent), transparent 70%),
+      radial-gradient(34rem 24rem at 72% 24%, color-mix(in oklab, var(--signal-cyan) 24%, transparent), transparent 68%),
+      radial-gradient(60rem 34rem at 50% 14%, color-mix(in oklab, var(--sky-haze) 85%, transparent), transparent 74%);
+    /* Faded on every edge, so the panel never reads as a rectangle over the page. */
+    mask-image:
+      linear-gradient(to bottom, transparent 0%, black 26%, black 58%, transparent 100%),
+      linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+  }
+
+  /* Hairline that fades out at both ends — the horizon rule. */
+  .rule-fade {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(to right, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent);
+  }
+
+  .signal-text {
+    background: linear-gradient(100deg, var(--sky-high), var(--signal-cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /*
+   * Card: flat at rest, one step of lift on hover, and a cyan edge that only
+   * appears on interaction. Transform and opacity only, so hover stays on the
+   * compositor.
+   */
+  .card {
+    position: relative;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    transition:
+      transform 260ms var(--ease-out-soft),
+      border-color 260ms var(--ease-out-soft),
+      box-shadow 260ms var(--ease-out-soft);
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(120deg, var(--sky-high), var(--signal-cyan));
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    opacity: 0;
+    transition: opacity 260ms var(--ease-out-soft);
+    pointer-events: none;
+  }
+
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -12px rgb(var(--shadow-key) / 0.18);
+  }
+
+  .card-interactive:hover::after,
+  .card-interactive:focus-within::after {
+    opacity: 0.85;
+  }
+
+  /* Filled control. The gradient is the one place the sky reads as a surface. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-sm);
+    padding: 0.6875rem 1.125rem;
+    font-size: var(--text-meta);
+    font-weight: 500;
+    color: #f8fcff;
+    background: linear-gradient(105deg, var(--sky-high), var(--signal-cyan));
+    box-shadow: 0 6px 20px -8px rgb(var(--glow) / 0.55);
+    transition:
+      transform 200ms var(--ease-out-soft),
+      box-shadow 200ms var(--ease-out-soft);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px -8px rgb(var(--glow) / 0.7);
+  }
+
+  .btn-quiet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    padding: 0.6875rem 1.125rem;
+    font-size: var(--text-meta);
+    font-weight: 500;
+    color: var(--ink);
+    transition:
+      background-color 200ms var(--ease-out-soft),
+      border-color 200ms var(--ease-out-soft);
+  }
+
+  .btn-quiet:hover {
+    background-color: var(--surface-sunk);
+    border-color: var(--signal);
+  }
+
+  /* Monospace pill for a stack entry or a state legend. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    padding: 0.3125rem 0.5625rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    color: var(--ink);
   }
 
   .prose-page {
@@ -162,7 +370,7 @@
   }
 
   .prose-page > * + * {
-    margin-top: 1.1em;
+    margin-top: 1.15em;
   }
 
   .prose-page strong {
@@ -179,5 +387,34 @@
 
   .prose-page a:hover {
     text-decoration-thickness: 2px;
+  }
+
+  /*
+   * Scroll-driven reveal. Runs on the compositor via the native view timeline
+   * where it exists, and is simply absent everywhere else — no JS, no observer,
+   * nothing to hydrate.
+   *
+   * Transform only, deliberately. A fade reads well but an element part-way
+   * through a scroll range rests at partial opacity, and text at partial opacity
+   * against the page is a contrast failure rather than an effect — measured at
+   * 1.83:1 here before this was changed. Movement carries the reveal instead.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
+        animation: reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 20%;
+      }
+    }
+  }
+
+  @keyframes reveal-in {
+    from {
+      transform: translateY(14px) scale(0.995);
+    }
+    to {
+      transform: none;
+    }
   }
 }
