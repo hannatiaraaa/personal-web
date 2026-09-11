@@ -36,7 +36,7 @@ export const caseStudies: readonly CaseStudy[] = [
     context: 'Field-operations platform · offline-first Android app for vessel crews',
     period: '2024–2026',
     summary:
-      'Reported as records reverting. It was not sync frequency — offline drafts had no ownership, so a device that had been away could land stale state on top of newer work.',
+      'Not sync frequency. Offline drafts had no ownership, so a device that had been away could land stale state on top of newer work — and nothing in the model could make that write fail.',
     reported: 'Records keep reverting.',
     actually: [
       'The obvious reading was sync frequency: devices at sea go days without a connection, so of course they fall behind. Syncing more often would have made the window smaller and the class of bug identical.',
@@ -65,7 +65,7 @@ export const caseStudies: readonly CaseStudy[] = [
     context: 'Field-operations platform · procure-to-pay, ERP integration',
     period: '2025–2026',
     summary:
-      'Reported as rounding errors. Tax and discount lived at several levels at once, so every level was individually defensible and the total was still wrong.',
+      'Not rounding. Tax and discount lived at several levels at once, so every level was individually defensible and the total was still wrong — collapsed into one ladder with no second rung.',
     reported: 'There are rounding errors on the requisition totals.',
     actually: [
       'Rounding was a reasonable first guess, because the discrepancies were small and the arithmetic at each level looked right when you checked it.',
@@ -93,7 +93,7 @@ export const caseStudies: readonly CaseStudy[] = [
     context: 'Field-operations platform · release quality and authorization',
     period: '2025–2026',
     summary:
-      'Inherited authorization gaps meant a passing suite proved nothing. Fixing them first would have blocked every release for months, so they were quarantined by name instead.',
+      'Inherited authorization gaps meant a passing suite proved nothing. Fixing them first would have blocked every release for months, so they were frozen by name — old debt cannot pass, new regressions show the day they land.',
     reported: 'All tests are green — we should be fine to release.',
     actually: [
       'The suite was green because it was not looking. There was no deterministic gate, and authorization in particular had a large set of pre-existing gaps that predated me.',
@@ -121,7 +121,7 @@ export const caseStudies: readonly CaseStudy[] = [
     context: 'Field-operations platform · approvals, specification to rollout',
     period: '2025–2026',
     summary:
-      'The obvious fix was a branch per customer. Instead the business configures its own ladders, spending authority and price guards — and a new customer costs no code.',
+      'The obvious fix was a branch per customer, which compounds forever. Instead the business configures its own ladders, spending authority and price guards, and a new customer costs no code at all.',
     reported: 'Approvals are wrong for this customer.',
     actually: [
       'The first customer had one approver, hard-coded. The second customer had a hierarchy, and the request arrived as a bug about their approvals being wrong.',
@@ -150,7 +150,7 @@ export const caseStudies: readonly CaseStudy[] = [
     context: 'Field-operations platform · offline mobile to online back-office',
     period: '2026',
     summary:
-      'A whole procure-to-pay module moved from the offline app to the web dashboard, AI-assisted, inside gates that already existed — with divergences recorded rather than discovered later.',
+      'No specification existed, only flows shaped by an offline device. Porting them faithfully would have carried offline assumptions into a place where they are wrong, so the workflows were re-decided at the pace of a migration.',
     reported: 'Procurement should live in the web app, not on the vessel.',
     actually: [
       'Nothing was written down. The specification was the existing flows, and the existing flows had been shaped by an offline device — draft-first, one user at a time, sync-aware.',
@@ -176,7 +176,7 @@ export const caseStudies: readonly CaseStudy[] = [
     context: 'Clinical mobile app · Kotlin and Swift to React Native',
     period: '2021–2023',
     summary:
-      'The defect list looked like two sets of platform bugs. It was one product implemented twice and drifting — so the platforms were unified onto a single codebase.',
+      'The defect list looked like two sets of platform bugs. It was one product implemented twice and drifting, so closing defects could never catch up — the platforms were unified onto one codebase instead.',
     reported: 'Android and iOS each have their own list of bugs.',
     actually: [
       'Read as two platform problems, it is two backlogs and two engineers. Read as one product implemented twice, it is a drift problem — and drift keeps producing new defects no matter how many you close.',

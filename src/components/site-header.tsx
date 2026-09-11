@@ -18,7 +18,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-5 sm:px-8">
+      <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-5 sm:gap-6 sm:px-8">
         <Link
           href="/"
           aria-label={`${identity.name} — home`}
@@ -27,7 +27,7 @@ export function SiteHeader() {
           Hanna<span className="text-signal">.</span>
         </Link>
 
-        <nav aria-label="Main" className="flex flex-1 items-center gap-1">
+        <nav aria-label="Main" className="flex flex-1 items-center gap-0.5 sm:gap-1">
           {routes.map((route) => {
             const active = pathname === route.href || pathname.startsWith(`${route.href}/`);
             return (
@@ -35,7 +35,7 @@ export function SiteHeader() {
                 key={route.href}
                 href={route.href}
                 aria-current={active ? 'page' : undefined}
-                className={`rounded-md px-2.5 py-1.5 text-meta transition-colors ${
+                className={`rounded-md px-2 py-1.5 text-meta transition-colors sm:px-2.5 ${
                   active ? 'text-ink' : 'text-ink-muted hover:text-ink'
                 }`}
               >
@@ -54,7 +54,7 @@ export function SiteHeader() {
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub profile (opens in a new tab)"
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-[1.05rem] text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+            className="hidden h-9 w-9 items-center justify-center rounded-md border border-line text-[1.05rem] text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:flex"
           >
             <GitHubIcon />
           </a>

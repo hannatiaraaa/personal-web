@@ -21,9 +21,9 @@ export default function HomePage() {
         <p className="mt-5 max-w-2xl text-pretty text-lead text-ink">{brandSentence}</p>
 
         <p className="mt-4 max-w-2xl text-body text-ink-muted">
-          I build {positioning.domain}: {positioning.surfaces.slice(0, 3).join(', ')}, {positioning.surfaces[3]} and{' '}
-          {positioning.surfaces[4]}. Most of my code is the offline-first app that frontline crews use where there is
-          no network — proved on {positioning.proof}, where connectivity is genuinely absent rather than slow.
+          I build {positioning.domain}: {positioning.surfaces.join(', ')}. Most of my code is the offline-first app
+          that frontline crews use where there is no network — proved on {positioning.proof}, where connectivity is
+          genuinely absent rather than slow.
         </p>
 
         <div className="mt-8">
