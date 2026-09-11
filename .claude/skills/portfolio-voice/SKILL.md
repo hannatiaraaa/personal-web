@@ -65,6 +65,7 @@ Write the modest register:
 - No authority claims about how companies work. An earlier draft said "I turn how a company actually works into software that holds up offline, under money, and under audit" and it was cut for describing an authority she would not want to defend in an interview. That instinct governs here too.
 - No "passionate", "innovative", "cutting-edge", "full time learner". The last one is a modesty claim sitting in the slot where evidence belongs.
 - Let a number end a sentence. It is stronger than any clause you could add after it.
+- **Round, and say it in a sentence.** Figures are approximate by choice: `100+`, `1,000+`, `~1,100`, `under four weeks`. False precision reads as a dashboard export, and a stat sheet of bare numerals reads as a robot. Put the figure inside a clause that says what it cost or what it proves — "certifying a release without touching customer data" earns the 1,000+ that precedes it.
 
 ## Confidentiality ceiling
 

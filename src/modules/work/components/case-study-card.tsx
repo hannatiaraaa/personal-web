@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { CaseStudy } from '@/content/case-studies';
-import { ArrowIcon } from './icons';
+import { ArrowIcon } from '@/common/components/icons';
 
 type Props = {
   study: CaseStudy;

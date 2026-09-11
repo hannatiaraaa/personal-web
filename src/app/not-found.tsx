@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowIcon } from '@/components/icons';
+import { ArrowIcon } from '@/common/components/icons';
 
 export default function NotFound() {
   return (

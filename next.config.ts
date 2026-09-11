@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   images: storageHost
     ? {
         loader: 'custom',
-        loaderFile: './src/lib/image-loader.ts',
+        loaderFile: './src/common/lib/image-loader.ts',
         remotePatterns: [{ protocol: 'https', hostname: storageHost, pathname: `${storagePath ?? ''}/**` }],
       }
     : {},

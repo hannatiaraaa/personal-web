@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import '@/styles/globals.css';
-import { mono, sans } from '@/lib/fonts';
+import { mono, sans } from '@/common/lib/fonts';
 import { identity, positioning } from '@/content/facts';
-import { SiteHeader } from '@/components/site-header';
-import { SiteFooter } from '@/components/site-footer';
-import { themeInitScript } from '@/components/theme-toggle';
+import { SiteHeader } from '@/common/components/site-header';
+import { SiteFooter } from '@/common/components/site-footer';
+import { themeInitScript } from '@/common/components/theme-toggle';
 
 const description = `${identity.brandLine} building ${positioning.domain} — offline-first mobile for field crews, approval and procure-to-pay workflows, and the release gate that decides what ships.`;
 

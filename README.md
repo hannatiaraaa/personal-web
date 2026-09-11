@@ -16,15 +16,17 @@ No environment variables are required. Off-repo assets are optional — the imag
 ## The gate
 
 ```bash
-bun run gate         # lint → typecheck → build → e2e
+bun run gate         # format:check → lint → typecheck → build → test:unit → test:e2e
 ```
 
-| Script              | What it checks                                                        |
-| ------------------- | --------------------------------------------------------------------- |
-| `bun run lint`      | `eslint` against `next/core-web-vitals` and `next/typescript`         |
-| `bun run typecheck` | `tsc --noEmit`, strict, with `noUncheckedIndexedAccess`               |
-| `bun run build`     | production build, including the OG image route                        |
-| `bun run test:e2e`  | Playwright against the production build, desktop and mobile viewports |
+| Script                 | What it checks                                                        |
+| ---------------------- | --------------------------------------------------------------------- |
+| `bun run format:check` | Prettier against `.prettierrc`, including Tailwind class order        |
+| `bun run lint`         | `eslint` against `next/core-web-vitals` and `next/typescript`         |
+| `bun run typecheck`    | `tsc --noEmit`, strict, with `noUncheckedIndexedAccess`               |
+| `bun run build`        | production build, including the OG image route                        |
+| `bun run test:unit`    | `bun test` over `lib/` — the pure logic, colocated beside each file   |
+| `bun run test:e2e`     | Playwright against the production build, desktop and mobile viewports |
 
 The end-to-end suite asserts what a visitor or a crawler can observe, not what a component received. Two of its assertions are the reason it exists:
 
@@ -38,17 +40,21 @@ What automation cannot certify stays manual, and is recorded per run in `docs/pr
 ## Layout
 
 ```
-src/content/     facts, case studies, stack, CV — typed modules, single source of truth
-src/app/         App Router routes
-src/components/  shell, primitives, inline SVG icons, mechanism diagrams
-src/lib/         fonts, image loader
-src/styles/      design tokens and the type scale
-e2e/             Playwright: content authority and accessibility
-docs/            acceptance brief, refactor plan, run logs
-.claude/skills/  repo-local skills: portfolio-run, portfolio-voice, portfolio-case-study
+src/app/         Routes. Metadata and composition only.
+src/modules/     One folder per area: views/ components/ hooks/ lib/
+src/content/     Data. Single source of truth. Server-only.
+src/common/      Shared by two or more modules
+src/styles/      Design tokens and the type scale
+e2e/             Playwright: what a visitor can observe
+docs/            Guidelines, acceptance brief, refactor plan, run logs
+.claude/skills/  Repo-local skills: portfolio-run, portfolio-voice, portfolio-case-study
 ```
 
+Every piece of code is exactly one of three things and lives in the folder named for it: `lib/` is pure logic with no React and no DOM, `hooks/` is React state with no JSX, `views/` and `components/` are markup with no rules. Dependencies point view → hook → lib.
+
 Content lives in typed modules rather than MDX so the structure can be enforced: a case study is missing a section at compile time, not at review time.
+
+Full rules in [`docs/guidelines.md`](docs/guidelines.md).
 
 ## Conventions
 

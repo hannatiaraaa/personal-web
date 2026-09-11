@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { caseStudies, getCaseStudy } from '@/content/case-studies';
-import { FigureRow } from '@/components/figure-row';
-import { CaseStudyDiagram } from '@/components/diagrams';
-import { ArrowIcon } from '@/components/icons';
+import { FigureRow } from '@/common/components/figure-row';
+import { CaseStudyDiagram } from '@/modules/visual/components/diagrams';
+import { ArrowIcon } from '@/common/components/icons';
 
 type Props = { params: Promise<{ slug: string }> };
 
