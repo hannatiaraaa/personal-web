@@ -20,7 +20,7 @@ export function Masthead() {
         className='sky-field'
       />
 
-      <div className='grid items-center gap-10 lg:grid-cols-[0.75fr_1fr] lg:gap-14'>
+      <div className='grid items-center gap-10 lg:grid-cols-[1fr_1.618fr] lg:gap-14'>
         <div className='order-2 lg:order-1'>
           <p className='legend'>
             {identity.brandLine} · {identity.location} · {identity.timezone}
