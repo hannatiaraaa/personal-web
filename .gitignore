@@ -38,3 +38,6 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 /blob-report/
+
+# run-log review screenshots: regenerable, kept on disk not in history
+/docs/private/screens/
