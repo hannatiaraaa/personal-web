@@ -22,16 +22,16 @@ export function FigureRow({ figures, variant = 'panel' }: Props) {
     <dl
       className={
         isPanel
-          ? 'grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius)] border border-line bg-line sm:grid-cols-4'
+          ? 'border-line bg-line grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius)] border sm:grid-cols-4'
           : 'grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4'
       }
     >
       {figures.map((figure) => (
         <div
           key={`${figure.value}-${figure.label}`}
-          className={isPanel ? 'bg-surface px-4 py-5 transition-colors hover:bg-surface-sunk' : ''}
+          className={isPanel ? 'bg-surface hover:bg-surface-sunk px-4 py-5 transition-colors' : ''}
         >
-          <dt className="sr-only">{figure.label}</dt>
+          <dt className='sr-only'>{figure.label}</dt>
           <dd>
             <span
               className={`tnum block font-mono font-medium tracking-[-0.02em] ${
@@ -40,7 +40,10 @@ export function FigureRow({ figures, variant = 'panel' }: Props) {
             >
               {figure.value}
             </span>
-            <span aria-hidden="true" className="mt-1.5 block text-meta leading-snug text-ink-muted">
+            <span
+              aria-hidden='true'
+              className='text-meta text-ink-muted mt-1.5 block leading-snug'
+            >
               {figure.label}
             </span>
           </dd>

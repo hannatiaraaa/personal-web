@@ -6,24 +6,27 @@ import { DownloadIcon } from '@/components/icons';
 
 export const metadata: Metadata = {
   title: 'CV',
-  description: `Full CV for ${identity.name} — ${identity.role} on a field-operations platform, previously mobile engineering in clinical software. Offline-first architecture, approval and procure-to-pay workflows, release automation.`,
+  description: `Full CV for ${identity.name} — ${identity.role} on a fleet maintenance and procurement platform, previously mobile engineering in clinical software. Offline-first architecture, approval and procure-to-pay workflows, release automation.`,
 };
 
 function Section({ legend, children }: { legend: string; children: React.ReactNode }) {
   return (
-    <section className="reveal">
-      <div className="flex items-center gap-3">
-        <span aria-hidden="true" className="h-3 w-0.5 rounded-full bg-linear-to-b from-sky-high to-signal-cyan" />
-        <h2 className="legend">{legend}</h2>
+    <section className='reveal'>
+      <div className='flex items-center gap-3'>
+        <span
+          aria-hidden='true'
+          className='from-sky-high to-signal-cyan h-3 w-0.5 rounded-full bg-linear-to-b'
+        />
+        <h2 className='legend'>{legend}</h2>
       </div>
-      <div className="mt-5">{children}</div>
+      <div className='mt-5'>{children}</div>
     </section>
   );
 }
 
 export default function CvPage() {
   return (
-    <div className="space-y-12">
+    <div className='space-y-12'>
       <PageHeader
         legend={`${identity.brandLine} · ${identity.stackLine}`}
         title={identity.name}
@@ -34,49 +37,59 @@ export default function CvPage() {
           Drive item id, which was neither indexable nor durable. */}
       <a
         href={resumePdf}
-        className="btn-primary"
+        className='btn-primary'
       >
         <DownloadIcon />
         Download as PDF
       </a>
 
-      <Section legend="Summary">
-        <div className="prose-page text-body text-ink-muted">
+      <Section legend='Summary'>
+        <div className='prose-page text-body text-ink-muted'>
           {summary.map((paragraph) => (
             <p key={paragraph.slice(0, 40)}>{paragraph}</p>
           ))}
         </div>
       </Section>
 
-      <Section legend="Career highlights">
-        <ul className="prose-page space-y-3 text-body text-ink-muted">
+      <Section legend='Career highlights'>
+        <ul className='prose-page text-body text-ink-muted space-y-3'>
           {highlights.map((item) => (
-            <li key={item.slice(0, 40)} className="flex gap-3">
-              <span aria-hidden="true" className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br from-sky-high to-signal-cyan" />
+            <li
+              key={item.slice(0, 40)}
+              className='flex gap-3'
+            >
+              <span
+                aria-hidden='true'
+                className='from-sky-high to-signal-cyan mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br'
+              />
               <span>{item}</span>
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section legend="Experience">
-        <div className="space-y-12">
+      <Section legend='Experience'>
+        <div className='space-y-12'>
           {roles.map((role) => (
             <article key={`${role.title}-${role.organisation}`}>
-              <h3 className="text-h3 font-semibold text-ink">
+              <h3 className='text-h3 text-ink font-semibold'>
                 {role.title} · {role.organisation}
               </h3>
-              <p className="mt-1 font-mono text-micro text-ink-faint">
+              <p className='text-micro text-ink-faint mt-1 font-mono'>
                 {role.period} · {role.location}
               </p>
-              {role.organisationNote && (
-                <p className="mt-1 text-meta text-ink-faint">{role.organisationNote}</p>
-              )}
-              {role.context && <p className="prose-page mt-3 text-meta text-ink-muted">{role.context}</p>}
-              <ul className="prose-page mt-4 space-y-2.5 text-meta text-ink-muted">
+              {role.organisationNote && <p className='text-meta text-ink-faint mt-1'>{role.organisationNote}</p>}
+              {role.context && <p className='prose-page text-meta text-ink-muted mt-3'>{role.context}</p>}
+              <ul className='prose-page text-meta text-ink-muted mt-4 space-y-2.5'>
                 {role.bullets.map((bullet) => (
-                  <li key={bullet.slice(0, 40)} className="flex gap-3">
-                    <span aria-hidden="true" className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-line-strong" />
+                  <li
+                    key={bullet.slice(0, 40)}
+                    className='flex gap-3'
+                  >
+                    <span
+                      aria-hidden='true'
+                      className='bg-line-strong mt-[0.6em] h-1 w-1 shrink-0 rounded-full'
+                    />
                     <span>{bullet}</span>
                   </li>
                 ))}
@@ -86,44 +99,44 @@ export default function CvPage() {
         </div>
       </Section>
 
-      <Section legend="Education">
-        <p className="text-body text-ink">
+      <Section legend='Education'>
+        <p className='text-body text-ink'>
           {education.degree} — {education.institution}, {education.years}
         </p>
-        <p className="mt-1 text-meta text-ink-muted">
+        <p className='text-meta text-ink-muted mt-1'>
           Presenter, ICMAMU 2018 International Conference, Bangkok. Head of Public Relations, Mathematics Students
           Union.
         </p>
       </Section>
 
-      <Section legend="Publications">
-        <ul className="space-y-3 text-meta text-ink-muted">
+      <Section legend='Publications'>
+        <ul className='text-meta text-ink-muted space-y-3'>
           {publications.map((paper) => (
             <li key={paper.title}>
-              {paper.title}. <span className="text-ink-faint">{paper.venue}</span>, {paper.year}.
+              {paper.title}. <span className='text-ink-faint'>{paper.venue}</span>, {paper.year}.
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section legend="Certifications">
-        <ul className="space-y-2 text-meta text-ink-muted">
+      <Section legend='Certifications'>
+        <ul className='text-meta text-ink-muted space-y-2'>
           {certifications.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       </Section>
 
-      <Section legend="Awards">
-        <ul className="space-y-2 text-meta text-ink-muted">
+      <Section legend='Awards'>
+        <ul className='text-meta text-ink-muted space-y-2'>
           {awards.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       </Section>
 
-      <Section legend="Languages">
-        <p className="text-meta text-ink-muted">{languages}</p>
+      <Section legend='Languages'>
+        <p className='text-meta text-ink-muted'>{languages}</p>
       </Section>
     </div>
   );

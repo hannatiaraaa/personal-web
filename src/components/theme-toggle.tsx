@@ -47,11 +47,11 @@ export function ThemeToggle() {
 
   return (
     <button
-      type="button"
+      type='button'
       onClick={toggle}
       aria-label={label}
       title={label}
-      className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-[1.05rem] text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+      className='border-line text-ink-muted hover:border-line-strong hover:text-ink flex h-9 w-9 items-center justify-center rounded-md border text-[1.05rem] transition-colors'
     >
       {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
     </button>

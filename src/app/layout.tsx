@@ -67,20 +67,29 @@ const personSchema = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang='en'
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+        />
       </head>
       <body className={`${sans.variable} ${mono.variable}`}>
         <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-line-strong focus:bg-surface focus:px-4 focus:py-2 focus:text-meta focus:text-ink"
+          href='#main'
+          className='focus:border-line-strong focus:bg-surface focus:text-meta focus:text-ink sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:border focus:px-4 focus:py-2'
         >
           Skip to content
         </a>
         <SiteHeader />
-        <main id="main" className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
+        <main
+          id='main'
+          className='mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16'
+        >
           {children}
         </main>
         <SiteFooter />

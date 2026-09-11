@@ -7,9 +7,9 @@
 
 ## Revision Log
 
-| Rev | Date | Changed criteria | Reason |
-| --- | --- | --- | --- |
-| 1 | 2026-09-11 | — | Initial draft |
+| Rev | Date       | Changed criteria | Reason        |
+| --- | ---------- | ---------------- | ------------- |
+| 1   | 2026-09-11 | —                | Initial draft |
 
 ## Goal
 
@@ -75,18 +75,19 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 
 ## Risk Review
 
-| Risk area | Applies? | Required handling |
-| --- | --- | --- |
-| Security/privacy | Yes | No secrets in committed files. `.env.local` stays git-ignored and unread beyond key names. No customer, vessel, approver or site names anywhere in content. |
-| Persistent data/migration | No | Static site, no database, no user data. |
-| External effects/cost | No | No push, no deploy, no paid calls. Branch work only. |
-| Compatibility/API | Yes | Existing published URLs `/`, `/projects`, `/skills` must not 404 for anyone holding a link — redirect or keep. |
-| UX/accessibility | Yes | axe assertions in Playwright plus a manual keyboard and contrast pass; automation alone cannot certify the visual result. |
-| Reputational | Yes | A wrong number on a public page is worse than no number. Every figure traces to the authority chain above, enforced by one typed source. |
+| Risk area                 | Applies? | Required handling                                                                                                                                           |
+| ------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security/privacy          | Yes      | No secrets in committed files. `.env.local` stays git-ignored and unread beyond key names. No customer, vessel, approver or site names anywhere in content. |
+| Persistent data/migration | No       | Static site, no database, no user data.                                                                                                                     |
+| External effects/cost     | No       | No push, no deploy, no paid calls. Branch work only.                                                                                                        |
+| Compatibility/API         | Yes      | Existing published URLs `/`, `/projects`, `/skills` must not 404 for anyone holding a link — redirect or keep.                                              |
+| UX/accessibility          | Yes      | axe assertions in Playwright plus a manual keyboard and contrast pass; automation alone cannot certify the visual result.                                   |
+| Reputational              | Yes      | A wrong number on a public page is worse than no number. Every figure traces to the authority chain above, enforced by one typed source.                    |
 
 ## Acceptance Criteria
 
 ### AC-001: The repository typechecks and lints clean
+
 - **Scenario:** feature branch at any commit
 - **Action:** `bun run typecheck` then `bun run lint`
 - **Expected:** both exit 0, zero errors
@@ -95,6 +96,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-002: Every public number resolves to one source
+
 - **Scenario:** the site renders any claim carrying a figure
 - **Action:** grep the rendered content for digits
 - **Expected:** each figure originates in `src/content/facts.ts`; no numeric claim is hardcoded in a page or component
@@ -103,6 +105,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-003: The public surface never self-applies "Senior"
+
 - **Scenario:** any page, meta description, OG tag, or JSON-LD on the site
 - **Action:** grep the built output for "Senior"
 - **Expected:** zero occurrences describing her own title; role reads `Founding Engineer` in the experience context and `Full-Stack Engineer` as the brand line
@@ -111,6 +114,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-004: The home page states the offer above the fold
+
 - **Scenario:** first-time visitor at 1280×800 and at 390×844, no scrolling
 - **Action:** load `/`
 - **Expected:** visible without scroll — her name, the brand sentence, the domain she works in, the remote constraint, and at least three evidence figures
@@ -119,6 +123,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-005: Every case study resolves a real problem, not a project blurb
+
 - **Scenario:** a visitor opens any `/work/<slug>`
 - **Action:** read the page
 - **Expected:** four labelled parts — how it was reported, what it actually was, what shipped, and the evidence — each with concrete content; at least five case studies exist
@@ -127,6 +132,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-006: No placeholder content survives
+
 - **Scenario:** the built site
 - **Action:** crawl every route
 - **Expected:** zero occurrences of "Test title", "Hello this is description", "lorem", "TODO", "Nextra" template credit, or an empty MDX page
@@ -135,6 +141,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-007: The stack page reflects what she actually reaches for
+
 - **Scenario:** visitor opens `/stack`
 - **Action:** read it
 - **Expected:** grouped by how current the skill is; contains the CV's current stack (React Native/Expo, WatermelonDB, Next 15, NestJS, Playwright, Drizzle, Bun, agent tooling)
@@ -143,6 +150,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-008: The CV is indexable and self-hosted
+
 - **Scenario:** visitor wants the CV; a search engine crawls the site
 - **Action:** load `/cv`; request the PDF
 - **Expected:** the CV renders as HTML text in the page, and the PDF is served from this origin
@@ -151,6 +159,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Important
 
 ### AC-009: The site builds with no environment variables set
+
 - **Scenario:** clean checkout, no `.env.local`
 - **Action:** `bun run build`
 - **Expected:** build succeeds; no image resolves to a URL containing "undefined"; no render-blocking third-party script
@@ -159,6 +168,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-010: Keyboard and screen-reader access hold on every page
+
 - **Scenario:** visitor navigating by keyboard only, and by screen reader
 - **Action:** tab through each route; run axe
 - **Expected:** zero axe violations at serious or critical severity; visible focus on every interactive element; tab order matches visual order; every control has a discernible name; theme toggle announces its state
@@ -167,6 +177,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-011: Existing published links do not break
+
 - **Scenario:** someone holds a link to `/projects` or `/skills` from the current site
 - **Action:** request those paths
 - **Expected:** a 200 or a 308 to the replacement route — never a 404
@@ -174,6 +185,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Important
 
 ### AC-012: Social and search previews are correct
+
 - **Scenario:** the site is shared on LinkedIn or indexed
 - **Action:** inspect `<head>`, `/sitemap.xml`, `/robots.txt`, and the OG image route
 - **Expected:** per-page title and description, a working OG image, canonical URL, `Person` JSON-LD, sitemap listing every route
@@ -182,6 +194,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Important
 
 ### AC-013: Contrast and theme behaviour hold in both modes
+
 - **Scenario:** light mode and dark mode, and system-preference default
 - **Action:** load every route in each
 - **Expected:** body text meets WCAG AA 4.5:1 and large text 3:1 in both; no flash of wrong theme on load
@@ -189,6 +202,7 @@ A visitor who arrives from the CV, the LinkedIn headline, or a recruiter's short
 - **Priority:** Required
 
 ### AC-014: The run leaves a ledger a cold reader can act on
+
 - **Scenario:** she opens the repo having read none of this session
 - **Action:** read `docs/private/portfolio-rebuild-run-log.md`
 - **Expected:** every scope item present with status done, deferred, blocked or skipped; decisions with reasoning; quoted gate output; a handoff naming branch, head, whether it boots, and the single next action
@@ -204,19 +218,19 @@ None block the work. One judgement call is recorded for her review **before merg
 
 ## Verification Plan
 
-| Criterion | Verification evidence | Status |
-| --- | --- | --- |
-| AC-001 | `bun run typecheck`, `bun run lint` | Pending |
-| AC-002 | superseded-figure assertion + grep review | Pending |
-| AC-003 | "Senior" assertion on built output | Pending |
-| AC-004 | Playwright viewport assertions + 2 screenshots reviewed | Pending |
-| AC-005 | structural test per slug + manual confidentiality read | Pending |
-| AC-006 | placeholder-string crawl assertion | Pending |
-| AC-007 | excluded-skill assertion + manual read | Pending |
-| AC-008 | DOM text assertion + PDF route 200 | Pending |
-| AC-009 | `bun run build` with env moved aside | Pending |
-| AC-010 | `@axe-core/playwright` per route + manual keyboard pass | Pending |
-| AC-011 | request assertions on `/projects`, `/skills` | Pending |
-| AC-012 | head/sitemap/robots/OG assertions | Pending |
-| AC-013 | token contrast check + both-mode screenshots | Pending |
-| AC-014 | ledger item count vs issue scope count | Pending |
+| Criterion | Verification evidence                                   | Status  |
+| --------- | ------------------------------------------------------- | ------- |
+| AC-001    | `bun run typecheck`, `bun run lint`                     | Pending |
+| AC-002    | superseded-figure assertion + grep review               | Pending |
+| AC-003    | "Senior" assertion on built output                      | Pending |
+| AC-004    | Playwright viewport assertions + 2 screenshots reviewed | Pending |
+| AC-005    | structural test per slug + manual confidentiality read  | Pending |
+| AC-006    | placeholder-string crawl assertion                      | Pending |
+| AC-007    | excluded-skill assertion + manual read                  | Pending |
+| AC-008    | DOM text assertion + PDF route 200                      | Pending |
+| AC-009    | `bun run build` with env moved aside                    | Pending |
+| AC-010    | `@axe-core/playwright` per route + manual keyboard pass | Pending |
+| AC-011    | request assertions on `/projects`, `/skills`            | Pending |
+| AC-012    | head/sitemap/robots/OG assertions                       | Pending |
+| AC-013    | token contrast check + both-mode screenshots            | Pending |
+| AC-014    | ledger item count vs issue scope count                  | Pending |

@@ -125,7 +125,7 @@ export const process = [
   {
     title: 'Customer-facing',
     detail:
-      "Operating procedures turn into configuration by sitting with the people who run them — operations, purchasing and finance. Most of my product decisions came from those conversations, not from a backlog.",
+      'Operating procedures turn into configuration by sitting with the people who run them — operations, purchasing and finance. Most of my product decisions came from those conversations, not from a backlog.',
   },
   {
     title: 'Written-first and remote',

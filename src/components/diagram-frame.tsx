@@ -22,14 +22,20 @@ export function DiagramFrame({ title, description, viewBox, children }: Props) {
   return (
     <figure
       tabIndex={0}
-      role="group"
+      role='group'
       aria-label={`Diagram: ${title}`}
-      className="my-8 overflow-x-auto rounded-lg border border-line bg-surface p-4 sm:p-6"
+      className='border-line bg-surface my-8 overflow-x-auto rounded-lg border p-4 sm:p-6'
     >
-      <svg viewBox={viewBox} role="img" aria-label={description} className="h-auto w-full min-w-[38rem]" fill="none">
+      <svg
+        viewBox={viewBox}
+        role='img'
+        aria-label={description}
+        className='h-auto w-full min-w-[38rem]'
+        fill='none'
+      >
         {children}
       </svg>
-      <figcaption className="mt-4 text-meta text-ink-muted">{title}</figcaption>
+      <figcaption className='text-meta text-ink-muted mt-4'>{title}</figcaption>
     </figure>
   );
 }

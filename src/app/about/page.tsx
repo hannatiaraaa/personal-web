@@ -8,7 +8,7 @@ import { ArrowIcon } from '@/components/icons';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'How I got from frontend to the end of the pipeline: joined a field-operations platform as a frontend engineer, picked up the API to take the approval rules end to end, then taught myself Playwright and built the release gate.',
+    'How I got from frontend to the end of the pipeline: joined a fleet maintenance and procurement platform as a frontend engineer, picked up the API to own the approval rules end to end, then taught myself Playwright and built the release gate.',
 };
 
 const arc = [
@@ -20,7 +20,7 @@ const arc = [
   {
     period: '2024',
     title: 'Joined a product in its first months',
-    body: 'Initialised the first codebases as a frontend engineer on a field-operations platform. The app went to crews working at sea, which turns "offline support" from a feature into the premise — there is no slow connection to fall back on, there is no connection.',
+    body: 'Initialised the first codebases as a frontend engineer. The app went to crews at sea, which turns "offline support" from a feature into the premise — there is no slow connection to fall back on, there is no connection.',
   },
   {
     period: '2025',
@@ -36,107 +36,125 @@ const arc = [
 
 export default function AboutPage() {
   return (
-    <div className="space-y-16">
-      <PageHeader legend="About" title={brandSentence} />
+    <div className='space-y-16'>
+      <PageHeader
+        legend='About'
+        title={brandSentence}
+      />
 
-      <section className="prose-page text-body text-ink-muted">
+      <section className='prose-page text-body text-ink-muted'>
         <p>
-          I am {identity.name} — {identity.role} at {identity.employer}, {identity.employerParent}. I work on{' '}
-          {positioning.domain}, and the products I have built run on {figures.vessels} vessels across{' '}
-          {figures.customerOrgs} customer organisations.
+          I am {identity.name} — {identity.role} at {identity.employer}, {identity.employerParent}. The product is{' '}
+          {positioning.product}, and it runs on {figures.vessels} vessels for {figures.realUsers} users across{' '}
+          {figures.customerOrgs} large customer organisations, as {positioning.productSurfaces}.
         </p>
         <p>
-          The work is correctness-critical in a specific way: approval ladders where a wrong total is a number someone
-          signs, tax arithmetic that structurally cannot tax tax, multi-currency, and multi-tenant isolation. And it is
-          offline-critical in another — the people using the app are the reason it has to work with no network at all.
+          It is correctness-critical: approval ladders where a wrong total is a number someone signs, tax arithmetic
+          that structurally cannot tax tax, multi-currency, multi-tenant isolation. And it is offline-critical, because
+          the people using the app are why it has to work with no network at all.
         </p>
         <p>
-          I am not a specialist who was hired for one layer. I am someone who kept following the problem into the next
-          layer because that was where the answer was, and who writes the specification and the decision record before
-          the code because that is the only way the next person can argue with it.
+          I was not hired for one layer. I kept following the problem into the next one because that is where the answer
+          was — and I write the specification and the decision record first, because that is the only way the next
+          person can argue with it.
         </p>
       </section>
 
       {/* The arc, because "full-stack" without a path through it is a claim
           rather than a history. */}
-      <section aria-labelledby="arc">
-        <p className="legend">The arc</p>
-        <h2 id="arc" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
+      <section aria-labelledby='arc'>
+        <p className='legend'>The arc</p>
+        <h2
+          id='arc'
+          className='text-h2 text-ink mt-3 font-semibold tracking-[-0.025em]'
+        >
           How the range was actually acquired
         </h2>
-        <ol className="mt-8 space-y-4">
+        <ol className='mt-8 space-y-4'>
           {arc.map((step) => (
-            <li key={step.period} className="card reveal relative overflow-hidden p-5 sm:p-6">
+            <li
+              key={step.period}
+              className='card reveal relative overflow-hidden p-5 sm:p-6'
+            >
               <span
-                aria-hidden="true"
-                className="absolute inset-y-0 left-0 w-0.5 bg-linear-to-b from-sky-high to-signal-cyan"
+                aria-hidden='true'
+                className='from-sky-high to-signal-cyan absolute inset-y-0 left-0 w-0.5 bg-linear-to-b'
               />
-              <p className="tnum font-mono text-micro text-signal">{step.period}</p>
-              <h3 className="mt-2 text-h3 font-semibold tracking-[-0.015em] text-ink">{step.title}</h3>
-              <p className="prose-page mt-2.5 text-meta text-ink-muted">{step.body}</p>
+              <p className='tnum text-micro text-signal font-mono'>{step.period}</p>
+              <h3 className='text-h3 text-ink mt-2 font-semibold tracking-[-0.015em]'>{step.title}</h3>
+              <p className='prose-page text-meta text-ink-muted mt-2.5'>{step.body}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <section aria-labelledby="maths">
-        <hr className="rule-fade" />
-        <p className="legend mt-10">Before software</p>
-        <h2 id="maths" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
+      <section aria-labelledby='maths'>
+        <hr className='rule-fade' />
+        <p className='legend mt-10'>Before software</p>
+        <h2
+          id='maths'
+          className='text-h2 text-ink mt-3 font-semibold tracking-[-0.025em]'
+        >
           Mathematics, and the habit it left behind
         </h2>
-        <p className="prose-page mt-4 text-body text-ink-muted">
+        <p className='prose-page text-body text-ink-muted mt-4'>
           {education.degree}, {education.institution} ({education.years}), in {education.note}. {figures.publications}{' '}
-          peer-reviewed papers — one on classifying the likelihood of spreading hoaxes with a support vector machine,
-          one an agent-based model of contagion effects in depression and recovery. It is not a credential I lean on,
-          but it is where the habit comes from: find the rule underneath the thing that was reported, write it down,
-          then check it.
+          publication papers — one on classifying the likelihood of spreading hoaxes with a support vector machine, one
+          an agent-based model of contagion effects in depression and recovery. It is not a credential I lean on, but it
+          is where the habit comes from: find the rule underneath the thing that was reported, write it down, then check
+          it.
         </p>
-        <div className="mt-8">
+        <div className='mt-8'>
           <ContagionField />
         </div>
 
-        <ul className="mt-8 space-y-3 text-meta text-ink-muted">
+        <ul className='text-meta text-ink-muted mt-8 space-y-3'>
           {publications.map((paper) => (
-            <li key={paper.title} className="flex gap-3">
+            <li
+              key={paper.title}
+              className='flex gap-3'
+            >
               <span
-                aria-hidden="true"
-                className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br from-sky-high to-signal-cyan"
+                aria-hidden='true'
+                className='from-sky-high to-signal-cyan mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-linear-to-br'
               />
               <span>
-                {paper.title}. <span className="text-ink-faint">{paper.venue}</span>, {paper.year}.
+                {paper.title}. <span className='text-ink-faint'>{paper.venue}</span>, {paper.year}.
               </span>
             </li>
           ))}
         </ul>
       </section>
 
-      <section aria-labelledby="remote">
-        <hr className="rule-fade" />
-        <p className="legend mt-10">Working style</p>
-        <h2 id="remote" className="mt-3 text-h2 font-semibold tracking-[-0.025em] text-ink">
+      <section aria-labelledby='remote'>
+        <hr className='rule-fade' />
+        <p className='legend mt-10'>Working style</p>
+        <h2
+          id='remote'
+          className='text-h2 text-ink mt-3 font-semibold tracking-[-0.025em]'
+        >
           Remote, and written-first
         </h2>
-        <p className="prose-page mt-4 text-body text-ink-muted">
-          Remote since {identity.remoteSince}, across Indonesia, Singapore and outsourced teams. Working this way for
-          {' '}{figures.yearsRemote} years has made the practice written-first by necessity: specifications, decision
+        <p className='prose-page text-body text-ink-muted mt-4'>
+          Remote since {identity.remoteSince}, across Indonesia, Singapore and outsourced teams. Working this way for{' '}
+          {figures.yearsRemote} years has made the practice written-first by necessity: specifications, decision
           records, runbooks and release notes are how the work is handed over, not paperwork produced afterwards.
         </p>
-        <p className="prose-page mt-4 text-body text-ink-muted">
-          Based in {identity.location} ({identity.timezone}), {positioning.overlap}.{' '}
-          {positioning.availability} in field-service, operations, HR/payroll or fintech software.
+        <p className='prose-page text-body text-ink-muted mt-4'>
+          Based in {identity.location} ({identity.timezone}), {positioning.overlap}. {positioning.availability} in
+          field-service, operations, HR/payroll or fintech software.
         </p>
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className='mt-6 flex flex-wrap items-center gap-x-6 gap-y-3'>
           <Link
-            href="/cv"
-            className="btn-primary group"
+            href='/cv'
+            className='btn-primary group'
           >
             Read the full CV
-            <ArrowIcon className="transition-transform group-hover:translate-x-0.5" />
+            <ArrowIcon className='transition-transform group-hover:translate-x-0.5' />
           </Link>
           <a
             href={`mailto:${identity.email}`}
-            className="text-meta text-ink-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-ink"
+            className='text-meta text-ink-muted decoration-line-strong hover:text-ink underline underline-offset-4 transition-colors'
           >
             {identity.email}
           </a>

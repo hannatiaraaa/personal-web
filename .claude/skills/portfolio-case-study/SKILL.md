@@ -11,14 +11,14 @@ So every case study is one **divergence**, told in four parts.
 
 The structure is fixed and the type system enforces it — a case study missing a part does not compile.
 
-| Part | What goes in it | Failure to avoid |
-|---|---|---|
-| **Reported** | The sentence someone actually said, in their words. "Records keep reverting." "Approvals are wrong." "Rounding errors." | Restating the real cause here. If Reported already names the mechanism, there is no divergence and no case study. |
+| Part         | What goes in it                                                                                                                      | Failure to avoid                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Reported** | The sentence someone actually said, in their words. "Records keep reverting." "Approvals are wrong." "Rounding errors."              | Restating the real cause here. If Reported already names the mechanism, there is no divergence and no case study.                                |
 | **Actually** | What the cause turned out to be, and why the reported framing pointed the wrong way. This is the part a reader cannot get from a CV. | Naming a bug where the answer is a missing concept. "No ownership on offline drafts" is a concept; "an off-by-one in the sync loop" is a ticket. |
-| **Shipped** | What was built, at mechanism level — the guard, the ladder, the DTO, the migration. Enough that a reader can argue with the design. | A stack list. "React Native, WatermelonDB, TypeScript" is not what shipped. |
-| **Evidence** | The figure, the scope, the thing that would be checkable if it were not behind a login. Pulled from `src/content/facts.ts`. | An unsourced number. See `portfolio-voice` for the authority chain. |
+| **Shipped**  | What was built, at mechanism level — the guard, the ladder, the DTO, the migration. Enough that a reader can argue with the design.  | A stack list. "React Native, WatermelonDB, TypeScript" is not what shipped.                                                                      |
+| **Evidence** | The figure, the scope, the thing that would be checkable if it were not behind a login. Pulled from `src/content/facts.ts`.          | An unsourced number. See `portfolio-voice` for the authority chain.                                                                              |
 
-**Close the class, not the ticket.** The strongest case studies here end with the class of bug being gone — ownership guards mean stale writes cannot land at all; one arithmetic ladder means no level *can* tax tax; a quarantined debt list means old gaps cannot be counted as a pass. When a case study ends at "and the bug was fixed", look again for the class.
+**Close the class, not the ticket.** The strongest case studies here end with the class of bug being gone — ownership guards mean stale writes cannot land at all; one arithmetic ladder means no level _can_ tax tax; a quarantined debt list means old gaps cannot be counted as a pass. When a case study ends at "and the bug was fixed", look again for the class.
 
 ## Which work earns a page
 
@@ -37,7 +37,7 @@ Older client work (3D product site, banking interface, environmental platform) h
 
 ## Drawing the mechanism
 
-Screenshots of Altonaut cannot be published; mechanisms can be drawn. One inline SVG that shows *how the thing actually goes wrong* does more for "I design systems" than any animation — two devices holding the same draft, one stale, and the guard that rejects the late write.
+Screenshots of Altonaut cannot be published; mechanisms can be drawn. One inline SVG that shows _how the thing actually goes wrong_ does more for "I design systems" than any animation — two devices holding the same draft, one stale, and the guard that rejects the late write.
 
 Draw it only when the mechanism is genuinely spatial or temporal. A decorative box diagram beside prose that already explains it is worse than no diagram. Both themes must stay legible: stroke and text from the same tokens the page uses, never a hardcoded colour.
 

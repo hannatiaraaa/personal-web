@@ -43,15 +43,23 @@ export const brandSentence =
   'I started in frontend and learned my way to the end of the pipeline — idea, API, mobile, web, release — by watching how people actually use what I ship.';
 
 export const positioning = {
-  domain: 'field-operations software',
-  /** Market's own nouns first. Maritime is the proof, not the frame. */
+  /**
+   * The market noun, for keyword match — used once per page at most.
+   * `surfaces` carries the breadth, because the product is planned maintenance,
+   * inventory, certificates and procurement, not one of those.
+   */
+  domain: 'end-to-end software',
   surfaces: [
     'work orders and planned maintenance',
     'assets and component hierarchies',
-    'inspections and defect reporting',
+    'inspections, defects and certificates',
     'inventory and procure-to-pay',
-    'multi-tier approvals',
+    'multi-tier approvals and fleet analytics',
   ],
+  /** One sentence naming the whole product. Used where the role is introduced. */
+  product: 'planned maintenance, inventory and procurement for offshore fleets',
+  /** The three surfaces it ships as. */
+  productSurfaces: 'an offline tablet app for crews, a back-office web app for shore staff, and a vendor portal',
   proof: 'offshore marine fleets',
   availability: 'Open to full-remote engineering roles',
   overlap: 'comfortable with AU, SG and EU overlap',
@@ -68,14 +76,15 @@ type Figure = {
 export const headlineFigures: readonly Figure[] = [
   { value: '100+', label: 'vessels running the platform' },
   { value: '1,000+', label: 'merged pull requests' },
-  { value: '1,000+', label: 'repeatable release cases' },
+  { value: '1,000+', label: 'real users' },
   { value: '6 yrs', label: 'in production software, 5 remote' },
 ] as const;
 
 export const figures = {
   vessels: '100+',
-  customerOrgs: 'three',
+  customerOrgs: '3',
   mergedPullRequests: '1,000+',
+  realUsers: '1,000+',
   reviewsGiven: '500+',
   releaseCases: '1,000+',
   releaseSpecs: '150+',
@@ -83,19 +92,19 @@ export const figures = {
   guardedRoutes: '130+',
   permissionProfiles: '20+',
   migrationFiles: '~1,100',
-  migrationWeeks: 'under four weeks',
-  approvalRebuildWeeks: 'under three weeks',
+  migrationWeeks: '< 4 weeks',
+  approvalRebuildWeeks: '< 3 weeks',
   escalations: '100+',
   pentestFindingsClosed: '60%',
-  yearsInProduction: 'six',
-  yearsRemote: 'five',
+  yearsInProduction: '6',
+  yearsRemote: '5',
   nativeDefectsResolved: '20+',
   bugReportReduction: '~30%',
-  bothAppsReleasedWithin: 'six months',
+  bothAppsReleasedWithin: '6 months',
   designQuestionsResolved: '50+',
-  workstreamsOwned: 'five+',
-  sapDeliveryWeeks: 'about two weeks of development, two of verification',
-  repositories: 'five',
+  workstreamsOwned: '5+',
+  sapDeliveryWeeks: '2 weeks',
+  repositories: 'multiple',
   publications: 'two',
 } as const;
 
@@ -125,14 +134,19 @@ export const publications = [
  * Exported so the e2e suite can assert none of them reach the built output.
  */
 export const supersededFigures: readonly string[] = [
+  // Only literals from the previous generation of figures belong here. An entry
+  // that is not an old figure catches nothing and costs an assertion; an entry
+  // that matches a *current* figure fails the build on a true statement — which
+  // is what '130+ guarded' did, because 130+ is the live route count and 138 was
+  // the old one.
   '539',
   '1,144',
   '1144',
+  '191 specs',
   '2,760',
   '2760',
-  '395',
-  '191 specs',
   '138 guarded',
+  '395',
   '899',
   '32 open design questions',
   '19 tickets',

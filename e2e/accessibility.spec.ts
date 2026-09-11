@@ -24,10 +24,7 @@ for (const theme of ['light', 'dark'] as const) {
           (violation) => violation.impact === 'serious' || violation.impact === 'critical',
         );
 
-        expect(
-          blocking,
-          blocking.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`).join('\n'),
-        ).toEqual([]);
+        expect(blocking, blocking.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`).join('\n')).toEqual([]);
       });
     }
   });

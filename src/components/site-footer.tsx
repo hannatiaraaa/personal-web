@@ -10,38 +10,38 @@ const links = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-line bg-surface-sunk/40">
-      <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
-        <p className="legend">Contact</p>
-        <p className="mt-3 max-w-xl text-body text-ink-muted">
+    <footer className='border-line bg-surface-sunk/40 mt-24 border-t'>
+      <div className='mx-auto max-w-5xl px-5 py-10 sm:px-8'>
+        <p className='legend'>Contact</p>
+        <p className='text-body text-ink-muted mt-3 max-w-xl'>
           {positioning.availability} in field-service, operations, HR/payroll or fintech software. I answer every
           message that names the role and the country you can employ from.
         </p>
 
-        <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+        <ul className='mt-5 flex flex-wrap gap-x-5 gap-y-2'>
           {links.map(({ href, label, Icon, external }) => (
             <li key={label}>
               <a
                 href={href}
                 {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
-                className="flex items-center gap-2 text-meta text-ink-muted transition-colors hover:text-ink"
+                className='text-meta text-ink-muted hover:text-ink flex items-center gap-2 transition-colors'
               >
-                <Icon className="text-[1.05rem]" />
+                <Icon className='text-[1.05rem]' />
                 {label}
-                {external && <span className="sr-only">(opens in a new tab)</span>}
+                {external && <span className='sr-only'>(opens in a new tab)</span>}
               </a>
             </li>
           ))}
         </ul>
 
-        <p className="mt-6 max-w-xl text-meta text-ink-faint">
+        <p className='text-meta text-ink-faint mt-6 max-w-xl'>
           My public repositories are from 2020–2023. Everything since is in private company repositories, which is why
           the case studies are written out here rather than linked to a commit.
         </p>
 
-        <p className="mt-8 font-mono text-micro text-ink-faint">
-          {identity.location} · {identity.timezone} · Remote since {identity.remoteSince} ·{' '}
-          {new Date().getFullYear()} {identity.name}
+        <p className='text-micro text-ink-faint mt-8 font-mono'>
+          {identity.location} · {identity.timezone} · Remote since {identity.remoteSince} · {new Date().getFullYear()}{' '}
+          {identity.name}
         </p>
       </div>
     </footer>

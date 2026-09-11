@@ -313,57 +313,71 @@ export function ContagionField() {
   ];
 
   return (
-    <figure className="card overflow-hidden">
+    <figure className='card overflow-hidden'>
       <canvas
         ref={canvasRef}
-        className="block h-[16rem] w-full sm:h-[21rem]"
-        role="img"
+        className='block h-[16rem] w-full sm:h-[21rem]'
+        role='img'
         aria-label={`Live agent-based contagion simulation with ${AGENTS} agents. Currently ${counts.susceptible} susceptible, ${counts.affected} affected, ${counts.recovering} recovering and ${counts.recovered} recovered.`}
       />
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line px-4 py-3">
-        <dl className="flex flex-wrap gap-x-4 gap-y-2">
+      <div className='border-line flex flex-wrap items-center gap-x-5 gap-y-3 border-t px-4 py-3'>
+        <dl className='flex flex-wrap gap-x-4 gap-y-2'>
           {legend.map((item) => (
-            <div key={item.label} className="flex items-center gap-2">
-              <span aria-hidden="true" className={`h-2 w-2 rounded-full ${item.className}`} />
-              <dt className="font-mono text-micro text-ink-faint uppercase">{item.label}</dt>
-              <dd className="tnum font-mono text-meta text-ink">{item.value}</dd>
+            <div
+              key={item.label}
+              className='flex items-center gap-2'
+            >
+              <span
+                aria-hidden='true'
+                className={`h-2 w-2 rounded-full ${item.className}`}
+              />
+              <dt className='text-micro text-ink-faint font-mono uppercase'>{item.label}</dt>
+              <dd className='tnum text-meta text-ink font-mono'>{item.value}</dd>
             </div>
           ))}
         </dl>
 
-        <div className="ml-auto flex items-center gap-3">
-          <label className="flex items-center gap-2 font-mono text-micro text-ink-faint uppercase">
+        <div className='ml-auto flex items-center gap-3'>
+          <label className='text-micro text-ink-faint flex items-center gap-2 font-mono uppercase'>
             <span>beta</span>
             <input
-              type="range"
+              type='range'
               min={0.005}
               max={0.12}
               step={0.005}
               value={beta}
               onChange={(event) => setBeta(Number(event.target.value))}
-              className="h-1 w-20 accent-[var(--signal)]"
-              aria-label="Transmission probability per contact"
+              className='h-1 w-20 accent-[var(--signal)]'
+              aria-label='Transmission probability per contact'
             />
-            <span className="tnum text-meta text-ink normal-case">{beta.toFixed(3)}</span>
+            <span className='tnum text-meta text-ink normal-case'>{beta.toFixed(3)}</span>
           </label>
 
           {!reduced && (
-            <button type="button" onClick={() => setRunning((value) => !value)} className="chip">
+            <button
+              type='button'
+              onClick={() => setRunning((value) => !value)}
+              className='chip'
+            >
               {running ? 'Pause' : 'Play'}
             </button>
           )}
-          <button type="button" onClick={reset} className="chip">
+          <button
+            type='button'
+            onClick={reset}
+            className='chip'
+          >
             Reset
           </button>
         </div>
       </div>
 
-      <figcaption className="border-t border-line px-4 py-3 text-meta text-ink-muted">
-        Contact inside a radius transmits with probability <span className="font-mono">beta</span>; affected agents move
+      <figcaption className='border-line text-meta text-ink-muted border-t px-4 py-3'>
+        Contact inside a radius transmits with probability <span className='font-mono'>beta</span>; affected agents move
         to recovering, then recovered, and recovered agents can relapse. That relapse term is why the system settles at
-        an endemic level instead of burning out — raise <span className="font-mono">beta</span> and watch the level move,
-        not the outcome.
+        an endemic level instead of burning out — raise <span className='font-mono'>beta</span> and watch the level
+        move, not the outcome.
       </figcaption>
     </figure>
   );

@@ -19,12 +19,12 @@ No environment variables are required. Off-repo assets are optional — the imag
 bun run gate         # lint → typecheck → build → e2e
 ```
 
-| Script | What it checks |
-| --- | --- |
-| `bun run lint` | `eslint` against `next/core-web-vitals` and `next/typescript` |
-| `bun run typecheck` | `tsc --noEmit`, strict, with `noUncheckedIndexedAccess` |
-| `bun run build` | production build, including the OG image route |
-| `bun run test:e2e` | Playwright against the production build, desktop and mobile viewports |
+| Script              | What it checks                                                        |
+| ------------------- | --------------------------------------------------------------------- |
+| `bun run lint`      | `eslint` against `next/core-web-vitals` and `next/typescript`         |
+| `bun run typecheck` | `tsc --noEmit`, strict, with `noUncheckedIndexedAccess`               |
+| `bun run build`     | production build, including the OG image route                        |
+| `bun run test:e2e`  | Playwright against the production build, desktop and mobile viewports |
 
 The end-to-end suite asserts what a visitor or a crawler can observe, not what a component received. Two of its assertions are the reason it exists:
 

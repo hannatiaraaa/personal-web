@@ -244,7 +244,11 @@
     pointer-events: none;
     background:
       radial-gradient(42rem 28rem at 26% 34%, color-mix(in oklab, var(--sky-low) 40%, transparent), transparent 70%),
-      radial-gradient(34rem 24rem at 72% 24%, color-mix(in oklab, var(--signal-cyan) 24%, transparent), transparent 68%),
+      radial-gradient(
+        34rem 24rem at 72% 24%,
+        color-mix(in oklab, var(--signal-cyan) 24%, transparent),
+        transparent 68%
+      ),
       radial-gradient(60rem 34rem at 50% 14%, color-mix(in oklab, var(--sky-haze) 85%, transparent), transparent 74%);
     /* Faded on every edge, so the panel never reads as a rectangle over the page. */
     mask-image:

@@ -17,9 +17,7 @@ test.describe('factual authority', () => {
       const body = (await page.locator('body').innerText()).toLowerCase();
 
       for (const figure of supersededFigures) {
-        expect(body, `${route} must not state the superseded figure "${figure}"`).not.toContain(
-          figure.toLowerCase(),
-        );
+        expect(body, `${route} must not state the superseded figure "${figure}"`).not.toContain(figure.toLowerCase());
       }
     });
   }

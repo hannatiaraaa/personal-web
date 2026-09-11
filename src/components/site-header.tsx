@@ -17,17 +17,20 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/70 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-5 sm:gap-6 sm:px-8">
+    <header className='border-line bg-bg/70 sticky top-0 z-40 border-b backdrop-blur-xl backdrop-saturate-150'>
+      <div className='mx-auto flex h-14 max-w-5xl items-center gap-3 px-5 sm:gap-6 sm:px-8'>
         <Link
-          href="/"
+          href='/'
           aria-label={`${identity.name} — home`}
-          className="font-mono text-meta font-semibold tracking-[0.14em] text-ink uppercase"
+          className='text-meta text-ink font-mono font-semibold tracking-[0.14em] uppercase'
         >
-          Hanna<span className="signal-text">.</span>
+          Hanna<span className='signal-text'>.</span>
         </Link>
 
-        <nav aria-label="Main" className="flex flex-1 items-center gap-0.5 sm:gap-1">
+        <nav
+          aria-label='Main'
+          className='flex flex-1 items-center gap-0.5 sm:gap-1'
+        >
           {routes.map((route) => {
             const active = pathname === route.href || pathname.startsWith(`${route.href}/`);
             return (
@@ -35,7 +38,7 @@ export function SiteHeader() {
                 key={route.href}
                 href={route.href}
                 aria-current={active ? 'page' : undefined}
-                className={`rounded-md px-2 py-1.5 text-meta transition-colors sm:px-2.5 ${
+                className={`text-meta rounded-md px-2 py-1.5 transition-colors sm:px-2.5 ${
                   active ? 'text-ink' : 'text-ink-muted hover:text-ink'
                 }`}
               >
@@ -44,8 +47,8 @@ export function SiteHeader() {
                     not rely on colour alone. */}
                 {active && (
                   <span
-                    aria-hidden="true"
-                    className="mt-0.5 block h-0.5 rounded-full bg-linear-to-r from-sky-high to-signal-cyan"
+                    aria-hidden='true'
+                    className='from-sky-high to-signal-cyan mt-0.5 block h-0.5 rounded-full bg-linear-to-r'
                   />
                 )}
               </Link>
@@ -53,13 +56,13 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <a
             href={identity.github}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="GitHub profile (opens in a new tab)"
-            className="hidden h-9 w-9 items-center justify-center rounded-md border border-line text-[1.05rem] text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:flex"
+            target='_blank'
+            rel='noreferrer'
+            aria-label='GitHub profile (opens in a new tab)'
+            className='border-line text-ink-muted hover:border-line-strong hover:text-ink hidden h-9 w-9 items-center justify-center rounded-md border text-[1.05rem] transition-colors sm:flex'
           >
             <GitHubIcon />
           </a>
