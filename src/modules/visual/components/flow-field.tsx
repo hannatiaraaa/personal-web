@@ -16,14 +16,16 @@ export function FlowField() {
   const { pointCount, reducedMotion } = useFlowFieldScene(canvasRef);
 
   return (
-    <div className='relative'>
+    <div>
       <canvas
         ref={canvasRef}
         className='block h-[19rem] w-full cursor-crosshair touch-none sm:h-[26rem]'
         role='img'
         aria-label={`A pool of ${pointCount.toLocaleString('en')} points placed by the golden angle, undulating as ocean swell while a reaction–diffusion front sweeps through. Click or touch to drop a ripple.`}
       />
-      <p className='text-micro text-ink-faint pointer-events-none absolute bottom-1 left-0 font-mono'>
+      {/* In flow rather than floating: in a narrow column the line wraps, and
+          an absolutely positioned one ran into the caption beneath it. */}
+      <p className='text-micro text-ink-faint mt-3 font-mono leading-relaxed'>
         {heroFormulas}
         {reducedMotion && ' · still — touch to ripple'}
       </p>

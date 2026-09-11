@@ -18,7 +18,10 @@ import {
 import { useInViewport } from '@/common/hooks/use-in-viewport';
 import { usePageVisible } from '@/common/hooks/use-page-visible';
 import { useReducedMotion } from '@/common/hooks/use-reduced-motion';
-import { buildVogelPool, POOL_POINTS, POOL_POINTS_MOBILE } from '@/modules/visual/lib/flow-field';
+import { buildVogelPool, MAX_RIPPLES, POOL_POINTS, POOL_POINTS_MOBILE } from '@/modules/visual/lib/flow-field';
+import { createFragmentShader, createVertexShader } from '@/modules/visual/lib/flow-field-shaders';
+import { intersectGroundPlane, unrotateY } from '@/modules/visual/lib/pointer-plane';
+import { RippleQueue } from '@/modules/visual/lib/ripple-queue';
 
 /** Fill cost scales with the square of this; 1.5 is already crisp. */
 const MAX_DPR = 1.5;
@@ -26,118 +29,19 @@ const MOBILE_BREAKPOINT = 640;
 /** Slow spin. The moiré shimmer of the spiral arms comes from this alone. */
 const DRIFT_PER_SECOND = 0.035;
 const POINTER_EASING = 0.05;
-const POINTER_TILT = 0.1;
-/** Concurrent ripples. A fifth touch recycles the oldest. */
-const MAX_RIPPLES = 4;
-/** Metres of pointer travel between free ripples while moving. */
-const RIPPLE_SPACING = 1.1;
+const POINTER_ROLL = 0.1;
+const POINT_SIZE = 22;
 /** A still frame wants the swell mid-motion, not the flat start. */
 const STILL_TIME = 7.3;
 
-/**
- * One `Points` object, one static buffer, one draw call. Per frame the CPU
- * sends a clock and four ripple records; everything else — swell, front,
- * ripples, colour — happens in the vertex shader. No lights, no textures, no
- * post-processing: none of it is needed, and all of it is what makes three.js
- * heavy.
- *
- * The three motion fields are ports of `swellHeight`, `frontPulse` and
- * `rippleHeight` in `lib/flow-field.ts`. GLSL cannot call TypeScript, so they
- * exist twice; the TypeScript versions are the tested ones and these must be
- * changed with them.
- */
-const vertexShader = /* glsl */ `
-  attribute float aRadius;
-
-  uniform float uTime;
-  uniform float uSize;
-  uniform float uPixelRatio;
-  uniform vec4 uRipples[4];
-
-  varying float vIntensity;
-  varying float vRadius;
-  varying float vDepth;
-
-  // Port of swellHeight().
-  float swellHeight(vec2 p, float time) {
-    return 0.62 * sin(0.75 * p.x + 0.9 * time)
-         + 0.34 * sin(0.52 * p.y - 1.18 * time + 1.7)
-         + 0.22 * sin(0.41 * (p.x + p.y) + 0.64 * time + 3.1);
-  }
-
-  // Port of frontPulse() — the moving edge of a harvested Fisher-Kolmogorov
-  // invasion: the gradient of the sigmoid profile, scaled by 1 - harvest.
-  float frontPulse(float radius, float time) {
-    float phase = fract(time / 9.0);
-    float reach = phase * 1.5 - 0.12;
-    float envelope = smoothstep(0.0, 0.12, phase) * (1.0 - smoothstep(0.8, 1.0, phase));
-    float sigmoid = 1.0 / (1.0 + exp(9.0 * (radius - reach)));
-    return 0.65 * 4.0 * sigmoid * (1.0 - sigmoid) * envelope;
-  }
-
-  // Port of rippleHeight() — expanding ring, decaying in space and time, gated
-  // so it cannot appear ahead of its own travel.
-  float rippleHeight(float distance, float age) {
-    if (age <= 0.0 || age > 3.5) return 0.0;
-    float travel = age * 2.2;
-    float causal = 1.0 - smoothstep(travel, travel + 0.6, distance);
-    return 0.32 * sin(5.5 * distance - 9.0 * age)
-         * exp(-distance / 1.4) * exp(-age / 1.1) * causal;
-  }
-
-  void main() {
-    float swell = swellHeight(position.xz, uTime);
-    float front = frontPulse(aRadius, uTime);
-
-    float ripples = 0.0;
-    for (int i = 0; i < 4; i++) {
-      vec4 drop = uRipples[i];
-      if (drop.w < 0.5) continue;
-      ripples += rippleHeight(distance(position.xz, drop.xy), uTime - drop.z);
-    }
-
-    // The swell eases toward the rim so the pool feathers instead of shearing.
-    float rim = 1.0 - smoothstep(0.55, 1.0, aRadius) * 0.45;
-    float height = swell * 0.62 * rim + front * 0.9 + ripples;
-
-    vec3 displaced = vec3(position.x, height, position.z);
-    vec4 viewPosition = modelViewMatrix * vec4(displaced, 1.0);
-    gl_Position = projectionMatrix * viewPosition;
-
-    // Colour: lifted by height, and the front ring glows as it passes.
-    float heightNorm = height * 0.5 + 0.5;
-    vIntensity = clamp(0.3 + 0.6 * heightNorm + 0.9 * front + 1.6 * abs(ripples), 0.0, 1.0);
-    vRadius = aRadius;
-    vDepth = clamp((-viewPosition.z - 6.0) / 12.0, 0.0, 1.0);
-
-    gl_PointSize = uSize * uPixelRatio * (1.0 / -viewPosition.z);
-  }
-`;
-
-const fragmentShader = /* glsl */ `
-  uniform vec3 uColorDeep;
-  uniform vec3 uColorBright;
-  uniform float uOpacity;
-
-  varying float vIntensity;
-  varying float vRadius;
-  varying float vDepth;
-
-  void main() {
-    // Soft round dot from the point's own coordinates — cheaper than a texture.
-    float distanceToCentre = length(gl_PointCoord - vec2(0.5));
-    if (distanceToCentre > 0.5) discard;
-    float falloff = smoothstep(0.5, 0.06, distanceToCentre);
-
-    vec3 colour = mix(uColorDeep, uColorBright, vIntensity);
-    // The rim feathers to nothing, so the pool has no hard edge,
-    // and far points recede without a fog pass.
-    float edge = 1.0 - smoothstep(0.82, 1.0, vRadius);
-    float depthFade = mix(1.0, 0.55, vDepth);
-
-    gl_FragColor = vec4(colour, falloff * uOpacity * edge * depthFade);
-  }
-`;
+const CAMERA = {
+  fov: 42,
+  near: 0.1,
+  far: 60,
+  /** High enough that the arms read as a pattern, low enough to keep depth. */
+  position: [0, 5.4, 9.6],
+  target: [0, -0.4, 0],
+} as const;
 
 function readColour(element: HTMLElement, token: string, fallback: string): Color {
   const value = getComputedStyle(element).getPropertyValue(token).trim();
@@ -152,12 +56,18 @@ function isDarkTheme(): boolean {
 }
 
 /**
- * Renders the pool and owns its frame loop.
+ * Runs the pool: one `Points` object over one static buffer, one draw call.
+ *
+ * Owns the WebGL lifecycle and the frame loop, and nothing else. The motion
+ * fields are in `lib/flow-field`, the shader source in
+ * `lib/flow-field-shaders`, the pointer geometry in `lib/pointer-plane` and the
+ * ripple bookkeeping in `lib/ripple-queue` — so everything with a rule in it is
+ * unit-tested, and this file is wiring.
  *
  * The loop stops when the canvas leaves the viewport or the tab goes to the
- * background. Under reduced motion it draws one settled frame and only redraws
- * when a ripple is placed by hand — motion the visitor asked for, not ambient
- * motion they asked to be spared.
+ * background. Under reduced motion the water stands still and only a ripple the
+ * visitor places redraws it: motion they asked for, not motion they asked to be
+ * spared.
  */
 export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>) {
   const reducedMotion = useReducedMotion();
@@ -180,29 +90,29 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
     }
     renderer.setClearAlpha(0);
 
-    const count = window.innerWidth < MOBILE_BREAKPOINT ? POOL_POINTS_MOBILE : POOL_POINTS;
-    const pool = buildVogelPool(count);
+    const pool = buildVogelPool(window.innerWidth < MOBILE_BREAKPOINT ? POOL_POINTS_MOBILE : POOL_POINTS);
     setPointCount(pool.count);
 
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(pool.positions, 3));
     geometry.setAttribute('aRadius', new BufferAttribute(pool.radius, 1));
 
+    // x, z, birth time, live flag — one vec4 per slot, read by the shader loop.
     const ripples = Array.from({ length: MAX_RIPPLES }, () => new Vector4(0, 0, 0, 0));
 
     const material = new ShaderMaterial({
-      vertexShader,
-      fragmentShader,
+      vertexShader: createVertexShader(),
+      fragmentShader: createFragmentShader(),
       transparent: true,
       depthWrite: false,
       uniforms: {
         uTime: { value: STILL_TIME },
-        uSize: { value: 22 },
+        uSize: { value: POINT_SIZE },
         uPixelRatio: { value: 1 },
         uRipples: { value: ripples },
-        uColorDeep: { value: new Color('#0284c7') },
-        uColorBright: { value: new Color('#22d3ee') },
-        uOpacity: { value: 0.9 },
+        uColorDeep: { value: new Color() },
+        uColorBright: { value: new Color() },
+        uOpacity: { value: 1 },
       },
     });
 
@@ -210,24 +120,22 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
     const scene = new Scene();
     scene.add(points);
 
-    // High enough that the spiral arms read as a pattern, low enough that the
-    // swell reads as depth. One framing; nothing re-aims.
-    const camera = new PerspectiveCamera(42, 1, 0.1, 60);
-    camera.position.set(0, 5.4, 9.6);
-    camera.lookAt(0, -0.4, 0);
+    const camera = new PerspectiveCamera(CAMERA.fov, 1, CAMERA.near, CAMERA.far);
+    camera.position.set(...CAMERA.position);
+    camera.lookAt(...CAMERA.target);
 
     const applyTheme = () => {
       const dark = isDarkTheme();
-      // The ramp runs quiet → energetic, and energy must gain contrast against
-      // the ground: on the dark ground it glows brighter (additive cyan), on
-      // the light ground it draws in darker ink. Same ramp, opposite ends.
-      if (dark) {
-        material.uniforms.uColorDeep!.value = readColour(canvas, '--sky-mid', '#22b8e6');
-        material.uniforms.uColorBright!.value = readColour(canvas, '--signal-cyan', '#22d3ee');
-      } else {
-        material.uniforms.uColorDeep!.value = readColour(canvas, '--sky-low', '#7dd3fc');
-        material.uniforms.uColorBright!.value = readColour(canvas, '--signal', '#0369a1');
-      }
+      // The ramp runs quiet → energetic, and energy has to gain contrast against
+      // its ground: over the dark one it glows brighter (additive cyan), over
+      // the light one it draws in darker ink. Same ramp, opposite ends — added
+      // light on white only goes to white, which lost the crest entirely.
+      material.uniforms.uColorDeep!.value = dark
+        ? readColour(canvas, '--sky-mid', '#22b8e6')
+        : readColour(canvas, '--sky-low', '#7dd3fc');
+      material.uniforms.uColorBright!.value = dark
+        ? readColour(canvas, '--signal-cyan', '#22d3ee')
+        : readColour(canvas, '--signal', '#0369a1');
       material.blending = dark ? AdditiveBlending : NormalBlending;
       material.uniforms.uOpacity!.value = dark ? 0.92 : 0.95;
       material.needsUpdate = true;
@@ -256,55 +164,41 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
     systemTheme.addEventListener('change', applyTheme);
 
     let clock = STILL_TIME;
-    let nextRipple = 0;
-    const lastDrop = { x: Infinity, z: Infinity };
+    const queue = new RippleQueue();
+    const pointer = { roll: 0, targetRoll: 0 };
 
-    /** Pointer → the pool's own plane, through the camera and the spin. */
-    const toPool = (event: PointerEvent): { x: number; z: number } | null => {
-      const rect = canvas.getBoundingClientRect();
+    const render = () => renderer.render(scene, camera);
+
+    const drop = (event: PointerEvent, rect: DOMRect, deliberate: boolean) => {
       const ndc = new Vector3(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -(((event.clientY - rect.top) / rect.height) * 2 - 1),
         0.5,
       ).unproject(camera);
 
-      const direction = ndc.sub(camera.position).normalize();
-      if (Math.abs(direction.y) < 1e-4) return null;
+      const ground = intersectGroundPlane(camera.position, ndc.sub(camera.position).normalize());
+      if (!ground) return;
 
-      const t = -camera.position.y / direction.y;
-      if (t <= 0) return null;
+      const slot = queue.place(unrotateY(ground, points.rotation.y), deliberate);
+      if (!slot) return;
 
-      const hitX = camera.position.x + direction.x * t;
-      const hitZ = camera.position.z + direction.z * t;
+      ripples[slot.index]!.set(slot.x, slot.z, clock, 1);
 
-      // The disc spins, so the hit rotates back into its space.
-      const spin = -points.rotation.y;
-      return {
-        x: hitX * Math.cos(spin) - hitZ * Math.sin(spin),
-        z: hitX * Math.sin(spin) + hitZ * Math.cos(spin),
-      };
+      // Standing still: the placed ripple is the only reason to repaint.
+      if (!shouldAnimate) {
+        material.uniforms.uTime!.value = clock;
+        render();
+      }
     };
 
-    const drop = (event: PointerEvent, force: boolean) => {
-      const hit = toPool(event);
-      if (!hit) return;
-      if (!force && Math.hypot(hit.x - lastDrop.x, hit.z - lastDrop.z) < RIPPLE_SPACING) return;
+    const onPointerDown = (event: PointerEvent) => drop(event, canvas.getBoundingClientRect(), true);
 
-      ripples[nextRipple]!.set(hit.x, hit.z, clock, 1);
-      nextRipple = (nextRipple + 1) % MAX_RIPPLES;
-      lastDrop.x = hit.x;
-      lastDrop.z = hit.z;
-
-      if (reducedMotion) renderStill();
-    };
-
-    const onPointerDown = (event: PointerEvent) => drop(event, true);
     const onPointerMove = (event: PointerEvent) => {
-      pointer.targetX = ((event.clientX - (canvas.getBoundingClientRect().left ?? 0)) / canvas.clientWidth - 0.5) * 2;
-      if (!reducedMotion) drop(event, false);
+      // One layout read per move, shared by the roll and the ripple.
+      const rect = canvas.getBoundingClientRect();
+      pointer.targetRoll = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+      if (!reducedMotion) drop(event, rect, false);
     };
-
-    const pointer = { x: 0, targetX: 0 };
 
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointermove', onPointerMove);
@@ -318,24 +212,18 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
       clock += elapsed;
 
       material.uniforms.uTime!.value = clock;
-      pointer.x += (pointer.targetX - pointer.x) * POINTER_EASING;
+      pointer.roll += (pointer.targetRoll - pointer.roll) * POINTER_EASING;
       points.rotation.y += elapsed * DRIFT_PER_SECOND;
-      points.rotation.z = pointer.x * POINTER_TILT;
+      points.rotation.z = pointer.roll * POINTER_ROLL;
 
-      renderer.render(scene, camera);
+      render();
       frameHandle = requestAnimationFrame(renderFrame);
-    };
-
-    /** Reduced motion: the world stands still; only a placed ripple redraws. */
-    const renderStill = () => {
-      material.uniforms.uTime!.value = clock;
-      renderer.render(scene, camera);
     };
 
     if (shouldAnimate) {
       frameHandle = requestAnimationFrame(renderFrame);
     } else {
-      renderStill();
+      render();
     }
 
     return () => {

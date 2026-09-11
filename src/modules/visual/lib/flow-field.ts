@@ -8,10 +8,10 @@
  * ocean swell (the work), and ripples where a visitor touches it.
  *
  * Everything positional is computed here once, on the CPU, and uploaded as
- * static attributes. The three motion fields are duplicated in GLSL because a
- * vertex shader cannot call TypeScript — these are the tested versions, and the
- * GLSL sits directly beside them in `use-flow-field-scene` so a change to one
- * is visibly a change to the other.
+ * static attributes. The tuning constants are exported as data so that
+ * `flow-field-shaders.ts` can generate the GLSL from the same numbers these
+ * functions are tested against — the duplication is then the shape of each
+ * formula, not its values.
  *
  * Pure: no three.js, no DOM, no React.
  */
@@ -26,11 +26,25 @@ export const POOL_POINTS_MOBILE = 9_000;
 /** World radius of the pool. */
 export const POOL_RADIUS = 4.6;
 
-/** One outward sweep of the front, in seconds. */
-export const FRONT_PERIOD = 9;
-
 /** The harvest term from the thesis: lowers what the front leaves behind. */
 export const HARVEST = 0.35;
+
+/** Front tuning. One source for the TypeScript and the generated GLSL. */
+export const FRONT = {
+  /** One outward sweep, in seconds. */
+  period: 9,
+  /** Sharpness of the sigmoid profile. */
+  steepness: 9,
+  /** Reach travels `slope·phase + offset`, so it starts inside and exits. */
+  reachSlope: 1.5,
+  reachOffset: -0.12,
+  /** Phase at which the sweep has fully faded in, and begun fading out. */
+  fadeIn: 0.12,
+  fadeOut: 0.8,
+} as const;
+
+/** Kept as a named export: it reads better than `FRONT.period` in a test. */
+export const FRONT_PERIOD = FRONT.period;
 
 export type FlowPool = {
   readonly count: number;
@@ -64,19 +78,41 @@ export function buildVogelPool(count: number = POOL_POINTS, poolRadius: number =
 }
 
 /**
- * Ocean swell as a sum of three sinusoids at different headings. One sine reads
- * as a corrugated sheet; a superposition reads as water.
+ * One component of the swell: `a·sin(kx·x + kz·z + ω·t + φ)`.
+ *
+ * Held as data rather than inlined so the vertex shader can be generated from
+ * the same numbers these functions are tested against.
  */
+export type SwellComponent = {
+  readonly amplitude: number;
+  readonly kx: number;
+  readonly kz: number;
+  readonly omega: number;
+  readonly phase: number;
+};
+
+/**
+ * Three headings, three periods. One sine reads as a corrugated sheet; a
+ * superposition reads as water.
+ */
+export const SWELL_COMPONENTS: readonly SwellComponent[] = [
+  { amplitude: 0.62, kx: 0.75, kz: 0, omega: 0.9, phase: 0 },
+  { amplitude: 0.34, kx: 0, kz: 0.52, omega: -1.18, phase: 1.7 },
+  { amplitude: 0.22, kx: 0.41, kz: 0.41, omega: 0.64, phase: 3.1 },
+] as const;
+
 export function swellHeight(x: number, z: number, time: number): number {
-  return (
-    0.62 * Math.sin(0.75 * x + 0.9 * time) +
-    0.34 * Math.sin(0.52 * z - 1.18 * time + 1.7) +
-    0.22 * Math.sin(0.41 * (x + z) + 0.64 * time + 3.1)
-  );
+  let height = 0;
+
+  for (const { amplitude, kx, kz, omega, phase } of SWELL_COMPONENTS) {
+    height += amplitude * Math.sin(kx * x + kz * z + omega * time + phase);
+  }
+
+  return height;
 }
 
 /** Largest height the swell can reach; used for framing and colour. */
-export const SWELL_AMPLITUDE = 0.62 + 0.34 + 0.22;
+export const SWELL_AMPLITUDE = SWELL_COMPONENTS.reduce((total, c) => total + c.amplitude, 0);
 
 function smoothstep(edge0: number, edge1: number, value: number): number {
   const t = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)));
@@ -91,12 +127,12 @@ export function frontPhase(time: number, period: number = FRONT_PERIOD): number 
 
 /** How far the front has travelled: starts inside the centre, exits the rim. */
 export function frontReach(phase: number): number {
-  return phase * 1.5 - 0.12;
+  return phase * FRONT.reachSlope + FRONT.reachOffset;
 }
 
 /** Fades the sweep in and out at the wrap, so the loop never snaps. */
 export function frontEnvelope(phase: number): number {
-  return smoothstep(0, 0.12, phase) * (1 - smoothstep(0.8, 1, phase));
+  return smoothstep(0, FRONT.fadeIn, phase) * (1 - smoothstep(FRONT.fadeOut, 1, phase));
 }
 
 /**
@@ -109,7 +145,12 @@ export function frontEnvelope(phase: number): number {
  * leaves nothing to invade at all — the thesis result, visible as a dimmer
  * ring.
  */
-export function frontPulse(radius: number, time: number, harvest: number = HARVEST, steepness = 9): number {
+export function frontPulse(
+  radius: number,
+  time: number,
+  harvest: number = HARVEST,
+  steepness: number = FRONT.steepness,
+): number {
   const plateau = Math.max(0, 1 - harvest);
   if (plateau === 0) return 0;
 
@@ -118,6 +159,12 @@ export function frontPulse(radius: number, time: number, harvest: number = HARVE
 
   return plateau * 4 * sigmoid * (1 - sigmoid) * frontEnvelope(phase);
 }
+
+/** Live ripple slots. The shader loops over a constant, so this is a GPU bound. */
+export const MAX_RIPPLES = 4;
+
+/** Metres a dragged pointer must travel before it earns another ripple. */
+export const RIPPLE_SPACING = 1.1;
 
 /** Ripple tuning. Exported so the shader constants trace to tested values. */
 export const RIPPLE = {
