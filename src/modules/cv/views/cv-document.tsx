@@ -23,17 +23,19 @@ export function CvDocument() {
 
       <CvSection legend='Summary'>
         <div className='prose-page text-body text-ink-muted'>
-          {summary.map((paragraph) => (
-            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+          {/* Index keys: two CV paragraphs can open with the same words, and a
+              duplicate key mis-reconciles the list on the next copy edit. */}
+          {summary.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
           ))}
         </div>
       </CvSection>
 
       <CvSection legend='Career highlights'>
         <ul className='prose-page text-body text-ink-muted space-y-3'>
-          {highlights.map((item) => (
+          {highlights.map((item, index) => (
             <li
-              key={item.slice(0, 40)}
+              key={index}
               className='flex gap-3'
             >
               <span
@@ -59,9 +61,9 @@ export function CvDocument() {
               {role.organisationNote && <p className='text-meta text-ink-faint mt-1'>{role.organisationNote}</p>}
               {role.context && <p className='prose-page text-meta text-ink-muted mt-3'>{role.context}</p>}
               <ul className='prose-page text-meta text-ink-muted mt-4 space-y-2.5'>
-                {role.bullets.map((bullet) => (
+                {role.bullets.map((bullet, index) => (
                   <li
-                    key={bullet.slice(0, 40)}
+                    key={index}
                     className='flex gap-3'
                   >
                     <span
