@@ -16,9 +16,9 @@ export function HowItIsBuilt() {
       <dl className='mt-8 grid gap-4 sm:grid-cols-3'>
         {[
           {
-            term: 'One lattice, one draw call',
+            term: 'One buffer, one draw call',
             detail:
-              'All three shapes come from the same points. The geometry is computed once on the CPU and uploaded as static buffers; the shader only mixes between them and applies the two fields that genuinely depend on time.',
+              'The spiral is computed once and uploaded as a static buffer. Per frame the CPU sends a clock and four ripple records; the swell, the front and every ripple happen in the vertex shader.',
           },
           {
             term: 'The page never carries it',
@@ -28,7 +28,7 @@ export function HowItIsBuilt() {
           {
             term: 'It stops when you look away',
             detail:
-              'The loop ends when the canvas leaves the screen or the tab goes to the background, renders a single still frame if you have asked for reduced motion, and drops to a smaller lattice on a phone.',
+              'The loop ends when the canvas leaves the screen or the tab goes to the background, and drops to a smaller pool on a phone. Under reduced motion the water stands still and only a ripple you place redraws it.',
           },
         ].map(({ term, detail }) => (
           <div key={term}>

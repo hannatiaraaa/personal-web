@@ -29,7 +29,7 @@ export const identity = {
   role: 'Founding Engineer',
   employer: 'Altonaut (PT Alto Nautika Teknologi)',
   employerParent: 'a venture of Wintermar Offshore Marine Group Tbk',
-  location: 'Depok, Indonesia',
+  location: 'Indonesia',
   timezone: 'GMT+7',
   remoteSince: 2021,
   email: 'hannatiara@gmail.com',

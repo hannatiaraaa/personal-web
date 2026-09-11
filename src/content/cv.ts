@@ -76,7 +76,7 @@ export const roles: readonly Role[] = [
     title: 'Research Assistant and Lecturer Assistant',
     organisation: 'Universitas Indonesia',
     period: 'Aug 2017 – Dec 2018',
-    location: 'Depok, Indonesia',
+    location: 'Indonesia',
     bullets: [
       'Contributed to three research papers on complex networks, deterministic and stochastic modelling, and optimal control.',
       'Taught the Ordinary Differential Equations class.',

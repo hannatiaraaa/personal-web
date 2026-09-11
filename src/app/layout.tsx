@@ -51,7 +51,7 @@ const personSchema = {
   url: identity.site,
   email: `mailto:${identity.email}`,
   sameAs: [identity.linkedin, identity.github],
-  address: { '@type': 'PostalAddress', addressLocality: 'Depok', addressCountry: 'ID' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Jakarta / West Java', addressCountry: 'ID' },
   worksFor: { '@type': 'Organization', name: identity.employer },
   alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universitas Indonesia' },
   knowsAbout: [

@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { brandSentence, headlineFigures, identity, positioning } from '@/content/facts';
-import { lifePathThesis } from '@/content/life-path';
+import { heroCaption, heroEmergence } from '@/content/hero';
 import { FigureRow } from '@/common/components/figure-row';
 import { ArrowIcon } from '@/common/components/icons';
-import { LifePathFieldMount } from '@/modules/visual/components/life-path-field-mount';
+import { FlowFieldMount } from '@/modules/visual/components/flow-field-mount';
 
 /**
  * The visualisation comes first, because it is the one thing here nobody else
- * has: the three shapes are my thesis, my clinical years and my current work,
- * and they are all the same mathematics.
+ * has: one pool of points carrying the golden angle, the thesis equation and
+ * the sea in a single moving surface.
  *
  * The name and the claim sit below it on solid ground rather than over the
  * canvas — text over a moving field is a contrast problem you cannot test.
@@ -26,10 +26,12 @@ export function Masthead() {
       </p>
 
       <div className='mt-6'>
-        <LifePathFieldMount />
+        <FlowFieldMount />
       </div>
 
-      <p className='text-meta text-ink-muted mt-8 max-w-2xl'>{lifePathThesis}</p>
+      <p className='text-meta text-ink-muted mt-8 max-w-2xl'>
+        {heroCaption} <span className='text-ink-faint'>{heroEmergence}</span>
+      </p>
 
       <hr className='rule-fade my-10' />
 

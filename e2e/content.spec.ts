@@ -172,20 +172,32 @@ test.describe('routes and metadata', () => {
 });
 
 test.describe('the hero', () => {
-  // Revised: the offer used to be what sat above the fold. The visualisation is
-  // now first on purpose — it is the one thing on the site nobody else has — so
-  // what must be visible without scrolling is the brand line, the three shapes
-  // and their labels. The name, the claim and the figures follow immediately
-  // after and are still asserted to exist.
-  test('the story is visible without scrolling', async ({ page }) => {
+  // The visualisation sits above the fold on purpose — it is the one thing on
+  // the site nobody else has. What must be visible without scrolling is the
+  // brand line and the pool; the name, the claim and the figures follow and are
+  // asserted to exist.
+  test('the pool is visible without scrolling', async ({ page }) => {
     await page.goto('/');
 
     await expect(page.getByText('GMT+7').first()).toBeInViewport();
     await expect(page.locator('canvas').first()).toBeInViewport();
+  });
 
-    for (const label of ['Mathematics', 'Clinical genomics', 'Offshore operations']) {
-      await expect(page.getByRole('button', { name: new RegExp(label) })).toBeInViewport();
-    }
+  test('the layers are named, so the piece reads as a path rather than a screensaver', async ({ page }) => {
+    await page.goto('/');
+    const body = await page.locator('body').innerText();
+
+    expect(body).toContain('golden angle');
+    expect(body).toContain('thesis');
+    expect(body).toContain('Fibonacci');
+  });
+
+  test('the canvas tells assistive tech what it is and how to touch it', async ({ page }) => {
+    await page.goto('/');
+
+    const label = await page.locator('canvas').first().getAttribute('aria-label');
+    expect(label).toMatch(/golden angle/);
+    expect(label).toMatch(/ripple/);
   });
 
   test('the name, the claim and the figures are on the page', async ({ page }) => {
@@ -194,33 +206,6 @@ test.describe('the hero', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Hanna Tiara Andarlia' })).toBeVisible();
     await expect(page.getByText('learned my way to the end of the pipeline')).toBeVisible();
     await expect(page.locator('dl').first()).toBeVisible();
-  });
-
-  test('each stage names a period and a shape', async ({ page }) => {
-    await page.goto('/');
-
-    for (const [label, period] of [
-      ['Mathematics', '2017–2019'],
-      ['Clinical genomics', '2021–2023'],
-      ['Offshore operations', '2024–'],
-    ] as const) {
-      const button = page.getByRole('button', { name: new RegExp(label) });
-      await expect(button).toContainText(period);
-    }
-  });
-
-  test('picking a stage holds it, and picking it again resumes', async ({ page }) => {
-    await page.goto('/');
-
-    const button = page.getByRole('button', { name: /Clinical genomics/ });
-    await expect(button).toHaveAttribute('aria-pressed', 'false');
-
-    await button.click();
-    await expect(button).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByText('Held · pick it again to resume')).toBeVisible();
-
-    await button.click();
-    await expect(button).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('the 2023 gimmicks are gone', async ({ page }) => {
