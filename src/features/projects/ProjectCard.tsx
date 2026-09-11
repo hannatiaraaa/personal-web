@@ -2,8 +2,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { StaticImageData } from 'next/image';
 
-type Props = {};
+type Props = {
+  title: string;
+  description: string;
+  techStacks: string[];
+  link: string;
+  image?: string | StaticImageData;
+};
 
 const ProjectCard = (props: Props) => {
   const [isLoading, setLoading] = useState(true);
@@ -38,7 +45,7 @@ const ProjectCard = (props: Props) => {
         </div>
         <div className='flex flex-wrap space-x-1.5'>
           <span className='shrink-0'>Built with:</span>
-          {techStacks.map((tool, index) => {
+          {techStacks.map((tool: string, index: number) => {
             return (
               <span
                 key={index}
