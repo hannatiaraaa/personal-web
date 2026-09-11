@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { supersededFigures } from '../src/content/facts';
+import { identity, supersededFigures } from '../src/content/facts';
 import { caseStudies } from '../src/content/case-studies';
 
 const ROUTES = ['/', '/work', '/stack', '/about', '/cv', ...caseStudies.map((s) => `/work/${s.slug}`)];
@@ -241,6 +241,19 @@ test.describe('the route header comes from the layout', () => {
 
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveText('Hanna Tiara Andarlia');
+  });
+
+  test('the hero keeps one headline across both layouts', async ({ page }) => {
+    for (const size of [
+      { width: 390, height: 844 },
+      { width: 1280, height: 800 },
+    ]) {
+      await page.setViewportSize(size);
+      await page.goto('/');
+
+      await expect(page.locator('h1')).toHaveCount(1);
+      await expect(page.getByText(identity.brandLine, { exact: false }).first()).toBeVisible();
+    }
   });
 
   test('a case study keeps its own header, not the work index one', async ({ page }) => {
