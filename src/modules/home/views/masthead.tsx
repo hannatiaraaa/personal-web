@@ -1,14 +1,17 @@
 import Link from 'next/link';
 import { brandSentence, headlineFigures, identity, positioning } from '@/content/facts';
+import { lifePathThesis } from '@/content/life-path';
 import { FigureRow } from '@/common/components/figure-row';
 import { ArrowIcon } from '@/common/components/icons';
+import { LifePathFieldMount } from '@/modules/visual/components/life-path-field-mount';
 
 /**
- * The claim, the proof and the constraint, all above the fold. Left-aligned
- * rather than centred: this is a spec sheet, not a product launch.
+ * The visualisation comes first, because it is the one thing here nobody else
+ * has: the three shapes are my thesis, my clinical years and my current work,
+ * and they are all the same mathematics.
  *
- * The sky behind it is one painted CSS layer — no image, no script, and nothing
- * that composites while the page scrolls.
+ * The name and the claim sit below it on solid ground rather than over the
+ * canvas — text over a moving field is a contrast problem you cannot test.
  */
 export function Masthead() {
   return (
@@ -22,7 +25,15 @@ export function Masthead() {
         {identity.brandLine} · {identity.location} · {identity.timezone}
       </p>
 
-      <h1 className='text-display text-ink mt-5 font-semibold tracking-[-0.04em] text-balance'>{identity.name}</h1>
+      <div className='mt-6'>
+        <LifePathFieldMount />
+      </div>
+
+      <p className='text-meta text-ink-muted mt-8 max-w-2xl'>{lifePathThesis}</p>
+
+      <hr className='rule-fade my-10' />
+
+      <h1 className='text-display text-ink font-semibold tracking-[-0.04em] text-balance'>{identity.name}</h1>
 
       <p className='text-lead text-ink mt-6 max-w-3xl text-pretty'>{brandSentence}</p>
 

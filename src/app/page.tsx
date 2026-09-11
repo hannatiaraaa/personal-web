@@ -1,13 +1,12 @@
-import { Masthead, Mathematics, Practice, SelectedWork, Visualisation } from '@/modules/home';
+import { HowItIsBuilt, Masthead, Mathematics, Practice, SelectedWork } from '@/modules/home';
 
 export default function HomePage() {
   return (
     <div className='space-y-20 sm:space-y-24'>
       <Masthead />
-      <hr className='rule-fade' />
+      <HowItIsBuilt />
       <SelectedWork />
       <Practice />
-      <Visualisation />
       <Mathematics />
     </div>
   );
