@@ -1,0 +1,49 @@
+name: gate
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to the same major the deploy target runs, so a version-specific
+      # failure surfaces in CI rather than at deploy.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - run: bun install --frozen-lockfile
+
+      - name: lint
+        run: bun run lint
+
+      - name: typecheck
+        run: bun run typecheck
+
+      - name: build
+        run: bun run build
+
+      # No environment variables are set in CI on purpose: a clean clone has to
+      # render complete pages, and the assertion that no asset URL contains
+      # "undefined" only means something when nothing is configured.
+      - name: install browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: end-to-end and accessibility
+        run: bun run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -33,3 +33,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright
+/playwright-report/
+/test-results/
+/blob-report/
+
+# run-log review screenshots: regenerable, kept on disk not in history
+/docs/private/screens/
