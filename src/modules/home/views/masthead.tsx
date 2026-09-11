@@ -2,6 +2,20 @@ import { brandSentence, identity, positioning } from '@/content/facts';
 import { heroCaption, heroEmergence } from '@/content/hero';
 import { FlowFieldMount } from '@/modules/visual/components/flow-field-mount';
 
+function HeroHeadline() {
+  return (
+    <>
+      <p className='legend'>
+        {identity.brandLine} · {identity.location} · {identity.timezone}
+      </p>
+
+      <h1 className='text-display text-ink mt-5 font-semibold tracking-[-0.04em] text-balance'>{identity.name}</h1>
+
+      <p className='text-lead text-ink mt-6 text-pretty'>{brandSentence}</p>
+    </>
+  );
+}
+
 /**
  * Name and pool, side by side.
  *
@@ -21,14 +35,14 @@ export function Masthead() {
       />
 
       <div className='grid items-center gap-10 lg:grid-cols-[1fr_1.618fr] lg:gap-14'>
-        <div className='order-2 lg:order-1'>
-          <p className='legend'>
-            {identity.brandLine} · {identity.location} · {identity.timezone}
-          </p>
+        <div className='order-1 lg:hidden'>
+          <HeroHeadline />
+        </div>
 
-          <h1 className='text-display text-ink mt-5 font-semibold tracking-[-0.04em] text-balance'>{identity.name}</h1>
-
-          <p className='text-lead text-ink mt-6 text-pretty'>{brandSentence}</p>
+        <div className='order-3 lg:order-1'>
+          <div className='hidden lg:block'>
+            <HeroHeadline />
+          </div>
 
           <p className='text-body text-ink-muted mt-5'>
             I build <span className='text-ink font-medium'>{positioning.domain}</span> for fleet operations —{' '}
@@ -37,7 +51,7 @@ export function Masthead() {
           </p>
         </div>
 
-        <div className='order-1 lg:order-2'>
+        <div className='order-2 lg:order-2'>
           <FlowFieldMount />
 
           <p className='text-meta text-ink-muted mt-6'>
