@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Delivery, StackGroups } from '@/modules/stack';
+import { Delivery, StackStory } from '@/modules/stack';
 
 export const metadata: Metadata = {
   title: 'Stack',
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function StackPage() {
   return (
     <div className='space-y-16'>
-      <StackGroups />
+      <StackStory />
       <Delivery />
     </div>
   );
