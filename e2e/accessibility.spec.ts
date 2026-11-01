@@ -1,13 +1,14 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { caseStudies } from '../src/content/case-studies';
+import { nextFocusKey } from './support/input';
 
 const ROUTES = ['/', '/work', '/stack', '/about', '/cv', `/work/${caseStudies[0]?.slug ?? ''}`];
 
 /**
- * axe cannot certify that a tab order makes sense, so the manual keyboard pass
- * stays in the run log. What it can certify is asserted here, on both themes —
- * a token pair that fails contrast in dark mode only is the realistic failure.
+ * axe cannot certify that a tab order makes sense; that stays a manual check.
+ * What it can certify is asserted here on both themes — a token pair failing
+ * contrast in dark mode only is the realistic failure.
  */
 for (const theme of ['light', 'dark'] as const) {
   test.describe(`${theme} theme`, () => {
@@ -33,7 +34,7 @@ for (const theme of ['light', 'dark'] as const) {
 test.describe('keyboard access', () => {
   test('the skip link is the first stop and it reaches main', async ({ page }) => {
     await page.goto('/');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(nextFocusKey(page));
 
     const skipLink = page.getByRole('link', { name: 'Skip to content' });
     await expect(skipLink).toBeFocused();
@@ -54,7 +55,10 @@ test.describe('keyboard access', () => {
 
   test('the theme toggle announces what it will do, and does it', async ({ page }) => {
     await page.goto('/');
-    const toggle = page.getByRole('button', { name: /switch to (light|dark) theme/i });
+    // Below `sm` the toggle is in the menu.
+    const menu = page.getByRole('banner').getByRole('button', { name: 'Menu' });
+    if (await menu.isVisible()) await menu.click();
+    const toggle = page.getByRole('button', { name: /switch to (light|dark) theme/i }).filter({ visible: true });
     await expect(toggle).toBeVisible();
 
     await toggle.click();
@@ -63,6 +67,9 @@ test.describe('keyboard access', () => {
 
   test('the current page is marked for assistive tech, not only by colour', async ({ page }) => {
     await page.goto('/work');
+    // Below `sm` the links are behind the menu button.
+    const menu = page.getByRole('banner').getByRole('button', { name: 'Menu' });
+    if (await menu.isVisible()) await menu.click();
     await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Work' })).toHaveAttribute(
       'aria-current',
       'page',

@@ -1,17 +1,40 @@
 @import 'tailwindcss';
+@import './scrolly.css';
+@import './scrolly-home.css';
+@import './scrolly-about.css';
+@import './scrolly-work.css';
+@import './approval-engine.css';
+@import './draft-sync.css';
+@import './draft-sync-drawing.css';
+@import './fun-fact.css';
+@import './gate-run.css';
+@import './hero-intro.css';
+@import './tax-ladder.css';
+@import './stack-story.css';
 
 /*
- * Bright sky.
+ * Pinning — a sticky visual beside scrolling text — is the one place a story is
+ * scrubbed by scroll. It is decided by width alone: phones and tablets have
+ * standard widths, while a desktop window's height depends on its toolbars and
+ * a docked DevTools. Below 64rem a story is plain flow and plays by itself as
+ * it comes into view. At any height above it, each pinned frame is sized from
+ * the band left under the sticky bars and scales to fit it. `PIN_QUERY`
+ * (common/lib/media-queries.ts) is the same query for a script, and a unit test
+ * keeps the two equal.
+ */
+@custom-variant pin {
+  @media (min-width: 64rem) {
+    @slot;
+  }
+}
+
+/*
+ * Bright sky: light mode is noon sky read from below, dark mode the same sky at
+ * night — navy, not neutral black.
  *
- * The palette is noon sky rather than a brand blue: near the sun it goes white
- * and cyan, overhead it saturates to azure. Light mode is that sky read from
- * below; dark mode is the same sky at night, navy rather than neutral black —
- * depth with a blue temperature, not grey.
- *
- * Light lives on bare :root so no colour has its only definition inside a media
- * query. Dark is declared twice: under prefers-color-scheme, guarded so an
- * explicit light choice wins, and under [data-theme='dark'] so the toggle wins
- * in both directions.
+ * Light lives on bare :root so no colour is defined only inside a media query.
+ * Dark is declared twice: under prefers-color-scheme (guarded so an explicit
+ * light choice wins) and under [data-theme='dark'], so the toggle wins both ways.
  */
 
 :root {
@@ -42,12 +65,60 @@
   --sky-mid: #22b8e6;
   --sky-high: #0284c7;
 
+  /* Caution: a reverted record, a piece of quarantined debt. Clears 4.5:1 on
+     --surface, so it holds as text. */
+  --caution: #b45309;
+  --caution-wash: #fff3db;
+  /* A caution mark that never carries text: a packet, a flash. */
+  --caution-bright: #f59e0b;
+
+  /* Pass: a case that passed, a release certified. Clears 4.5:1 on --surface. */
+  --pass: #15803d;
+
   --glow: 14 165 233;
   --shadow-key: 10 24 38;
   --focus: #0369a1;
 
+  /*
+   * Elevation: a 1px ring plus lift, all transparent, so it holds on any
+   * background. Borders stay for structure (dividers, rules, selected state).
+   * Dark mode is one faint light ring: a dark shadow on navy reads as nothing.
+   */
+  --shadow-border:
+    0 0 0 1px rgb(var(--shadow-key) / 0.1), 0 1px 2px -1px rgb(var(--shadow-key) / 0.08),
+    0 2px 4px 0 rgb(var(--shadow-key) / 0.04);
+  --shadow-border-hover:
+    0 0 0 1px rgb(var(--shadow-key) / 0.16), 0 1px 2px -1px rgb(var(--shadow-key) / 0.1),
+    0 2px 4px 0 rgb(var(--shadow-key) / 0.06);
+  --shadow-lift: 0 0 0 1px rgb(var(--shadow-key) / 0.12), 0 12px 32px -12px rgb(var(--shadow-key) / 0.24);
+  /* A panel that floats over the page (an interactive's frame), and a control
+     raised out of the track it sits in. Lift only; pair with a ring. */
+  --shadow-float: 0 18px 40px -28px rgb(var(--shadow-key) / 0.35);
+  --shadow-raise: 0 4px 12px -6px rgb(var(--shadow-key) / 0.3);
+  /* The primary control's coloured lift, from --glow, so it follows the theme. */
+  --shadow-glow: 0 6px 20px -8px rgb(var(--glow) / 0.55);
+  --shadow-glow-hover: 0 10px 26px -8px rgb(var(--glow) / 0.7);
+
+  /* Text on the sky gradient, in either theme. */
+  --on-sky: #f8fcff;
+
   --radius: 0.75rem;
   --radius-sm: 0.5rem;
+  --radius-pill: 999px;
+
+  /* The smallest target a finger can hit reliably. */
+  --target-min: 2.75rem;
+
+  /* The sticky site header: h-14 plus its 1px bottom border, at every width.
+     Anything else sticky sits below it. */
+  --header-h: calc(3.5rem + 1px);
+  /* Everything sticky above the content: the header, plus the case-study part
+     bar where it sits on top (scrolly-work.css). A sticky thing sits below it,
+     and a frame sized from the screen subtracts it. */
+  --sticky-offset: var(--header-h);
+  /* The least a pinned frame shrinks to. On a window shorter than that the
+     frame still pins and scrubs; the page scroll reaches the rest of it. */
+  --pin-frame-min: 22rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -77,9 +148,21 @@
     --sky-mid: #0e7490;
     --sky-high: #38bdf8;
 
+    --caution: #fbbf24;
+    --caution-wash: #2a1d07;
+    --caution-bright: #f59e0b;
+
+    --pass: #4ade80;
+
     --glow: 56 189 248;
     --shadow-key: 0 0 0;
     --focus: #38bdf8;
+
+    --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
+    --shadow-border-hover: 0 0 0 1px rgb(255 255 255 / 0.14);
+    --shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.14), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+    --shadow-float: 0 18px 40px -28px rgb(0 0 0 / 0.35);
+    --shadow-raise: 0 4px 12px -6px rgb(0 0 0 / 0.3);
   }
 }
 
@@ -109,9 +192,21 @@
   --sky-mid: #0e7490;
   --sky-high: #38bdf8;
 
+  --caution: #fbbf24;
+  --caution-wash: #2a1d07;
+  --caution-bright: #f59e0b;
+
+  --pass: #4ade80;
+
   --glow: 56 189 248;
   --shadow-key: 0 0 0;
   --focus: #38bdf8;
+
+  --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-border-hover: 0 0 0 1px rgb(255 255 255 / 0.14);
+  --shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.14), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+  --shadow-float: 0 18px 40px -28px rgb(0 0 0 / 0.35);
+  --shadow-raise: 0 4px 12px -6px rgb(0 0 0 / 0.3);
 }
 
 @theme inline {
@@ -133,15 +228,15 @@
   --color-sky-low: var(--sky-low);
   --color-sky-mid: var(--sky-mid);
   --color-sky-high: var(--sky-high);
+  --color-caution: var(--caution);
+  --color-caution-wash: var(--caution-wash);
+  --color-caution-bright: var(--caution-bright);
+  --color-pass: var(--pass);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', monospace;
 
-  /*
-   * Fluid scale. Sizes interpolate with the viewport so a phone and a 27-inch
-   * display each get a proportionate reading, and no page needs a responsive
-   * type class.
-   */
+  /* Fluid scale: sizes interpolate with the viewport, so no page needs a responsive type class. */
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1.35;
   --text-micro--letter-spacing: 0.09em;
@@ -161,6 +256,13 @@
   --text-display--line-height: 0.98;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* The press and the icon swap: quick to start, settles without overshoot. */
+  --ease-snap: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Tailwind's `transition-*` utilities ease out and stay short: a hover is
+     a high-frequency interaction, and an ease-in start reads as lag. */
+  --default-transition-duration: var(--default-transition-duration);
+  --default-transition-timing-function: var(--ease-out-soft);
 }
 
 @layer base {
@@ -168,8 +270,12 @@
     border-color: var(--line);
   }
 
+  /* Smoothing on the root, so every subtree — portals, the skip link — renders
+     at the same weight. */
   html {
     -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
   }
 
@@ -180,14 +286,47 @@
     font-size: var(--text-body);
     line-height: 1.68;
     text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings balance; running text avoids a one-word last line. Utilities
+     (`text-pretty`, `text-balance`) still override either. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd,
+  dt,
+  figcaption,
+  blockquote {
+    text-wrap: pretty;
   }
 
   :focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
     border-radius: 3px;
+  }
+
+  /*
+   * For the frame of a theme switch nothing transitions, so hover-transitioned
+   * colours do not each fade on their own clock; the view transition (where
+   * supported) cross-fades the page as one. The toggle's icon swap is exempt.
+   */
+  :root[data-theme-switching] *:not(.theme-toggle-icon),
+  :root[data-theme-switching] *::before,
+  :root[data-theme-switching] *::after {
+    transition: none !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 220ms;
+    animation-timing-function: ease-out;
   }
 
   ::selection {
@@ -218,6 +357,58 @@
 }
 
 @layer components {
+  /*
+   * Segmented control (SegmentedToggle): one track, the pressed option raised
+   * out of it. An interactive's own class sets only its share of the row.
+   */
+  .segmented {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius-sm) + 0.25rem);
+    background-color: var(--surface-sunk);
+  }
+
+  .segmented-option {
+    min-height: var(--target-min);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-meta);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--ink-muted);
+    transition-property: background-color, color, box-shadow, scale;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  @media (hover: hover) {
+    .segmented-option:hover:enabled {
+      color: var(--ink);
+    }
+  }
+
+  .segmented-option[aria-pressed='true'] {
+    background-color: var(--surface-raised);
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1px var(--line-strong),
+      var(--shadow-raise);
+  }
+
+  .segmented-option:disabled {
+    cursor: default;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .segmented-option {
+      transition: none;
+    }
+  }
+
   /* Small-caps legend above a block. */
   .legend {
     font-family: var(--font-mono);
@@ -273,25 +464,25 @@
   }
 
   /*
-   * Card: flat at rest, one step of lift on hover, and a cyan edge that only
-   * appears on interaction. Transform and opacity only, so hover stays on the
-   * compositor.
+   * Card: flat at rest, one step of lift and a cyan edge on hover. The edge is
+   * the elevation ring, so it holds on any background. The lift is `translate`,
+   * not `transform`: `.reveal` holds `transform` for its scroll animation and
+   * would cancel a hover on the same property.
    */
   .card {
     position: relative;
     border-radius: var(--radius);
-    border: 1px solid var(--line);
     background-color: var(--surface);
-    transition:
-      transform 260ms var(--ease-out-soft),
-      border-color 260ms var(--ease-out-soft),
-      box-shadow 260ms var(--ease-out-soft);
+    box-shadow: var(--shadow-border);
+    transition-property: translate, box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: var(--ease-out-soft);
   }
 
   .card::after {
     content: '';
     position: absolute;
-    inset: -1px;
+    inset: 0;
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(120deg, var(--sky-high), var(--signal-cyan));
@@ -299,18 +490,36 @@
       linear-gradient(#000 0 0) content-box exclude,
       linear-gradient(#000 0 0);
     opacity: 0;
-    transition: opacity 260ms var(--ease-out-soft);
+    transition: opacity 200ms var(--ease-out-soft);
     pointer-events: none;
   }
 
-  .card-interactive:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px -12px rgb(var(--shadow-key) / 0.18);
+  /* Hover only where there is one: on touch a tap would leave it stuck on. */
+  @media (hover: hover) {
+    .card-interactive:hover {
+      translate: 0 -2px;
+      box-shadow: var(--shadow-lift);
+    }
+
+    .card-interactive:hover::after {
+      opacity: 0.85;
+    }
   }
 
-  .card-interactive:hover::after,
   .card-interactive:focus-within::after {
     opacity: 0.85;
+  }
+
+  /*
+   * Press feedback: a held control scales to 0.96, as a transition so a release
+   * eases back. `data-press='static'` opts out where the movement would distract.
+   */
+  :is(.btn-primary, .btn-quiet, .icon-btn, a.chip, button.chip, .press):active:not(
+      :disabled,
+      [aria-disabled='true'],
+      [data-press='static']
+    ) {
+    scale: 0.96;
   }
 
   /* Filled control. The gradient is the one place the sky reads as a surface. */
@@ -322,37 +531,154 @@
     padding: 0.6875rem 1.125rem;
     font-size: var(--text-meta);
     font-weight: 500;
-    color: #f8fcff;
+    color: var(--on-sky);
     background: linear-gradient(105deg, var(--sky-high), var(--signal-cyan));
-    box-shadow: 0 6px 20px -8px rgb(var(--glow) / 0.55);
-    transition:
-      transform 200ms var(--ease-out-soft),
-      box-shadow 200ms var(--ease-out-soft);
+    box-shadow: var(--shadow-glow);
+    transition-property: translate, scale, box-shadow;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
   }
 
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 26px -8px rgb(var(--glow) / 0.7);
+  @media (hover: hover) {
+    .btn-primary:hover {
+      translate: 0 -1px;
+      box-shadow: var(--shadow-glow-hover);
+    }
   }
 
+  /* Outlined control. The outline is the elevation ring, turning signal on hover. */
   .btn-quiet {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--line-strong);
     padding: 0.6875rem 1.125rem;
     font-size: var(--text-meta);
     font-weight: 500;
     color: var(--ink);
-    transition:
-      background-color 200ms var(--ease-out-soft),
-      border-color 200ms var(--ease-out-soft);
+    box-shadow: var(--shadow-border);
+    transition-property: scale, background-color, box-shadow;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
   }
 
-  .btn-quiet:hover {
-    background-color: var(--surface-sunk);
-    border-color: var(--signal);
+  @media (hover: hover) {
+    .btn-quiet:hover {
+      background-color: var(--surface-sunk);
+      box-shadow: 0 0 0 1px var(--signal);
+    }
+  }
+
+  /*
+   * A square icon control in the header. 36px where the pointer is fine, 44px
+   * where it is a finger — the header row is 56px, so it fits either way.
+   */
+  .icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+    box-shadow: var(--shadow-border);
+    transition-property: scale, color, box-shadow;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  @media (hover: hover) {
+    .icon-btn:hover {
+      color: var(--ink);
+      box-shadow: var(--shadow-border-hover);
+    }
+  }
+
+  @media (pointer: coarse) {
+    .icon-btn {
+      width: var(--target-min);
+      height: var(--target-min);
+    }
+  }
+
+  /*
+   * The theme toggle's two icons share one cell and cross-fade on scale and
+   * opacity. Which shows is picked by the same selectors as the palette, so it is
+   * right before hydration.
+   */
+  .theme-toggle-icons {
+    display: grid;
+  }
+
+  .theme-toggle-icon {
+    grid-area: 1 / 1;
+    transition-property: opacity, scale;
+    transition-duration: 300ms;
+    transition-timing-function: var(--ease-snap);
+  }
+
+  .theme-toggle-sun,
+  :root[data-theme='dark'] .theme-toggle-moon {
+    opacity: 0;
+    scale: 0.25;
+  }
+
+  :root[data-theme='dark'] .theme-toggle-sun {
+    opacity: 1;
+    scale: 1;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .theme-toggle-moon {
+      opacity: 0;
+      scale: 0.25;
+    }
+
+    :root:not([data-theme='light']) .theme-toggle-sun {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  /*
+   * The menu button's two icons share one cell and cross-fade on scale,
+   * opacity and blur, driven by the button's own `aria-expanded`.
+   */
+  .menu-btn-icons {
+    display: grid;
+  }
+
+  .menu-btn-icon {
+    grid-area: 1 / 1;
+    transition-property: opacity, scale, filter;
+    transition-duration: 300ms;
+    transition-timing-function: var(--ease-snap);
+  }
+
+  .menu-btn[aria-expanded='true'] .menu-btn-open,
+  .menu-btn[aria-expanded='false'] .menu-btn-close {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
+  }
+
+  /* The panel drops in by transform only; its text is never painted part-faded. */
+  @media (prefers-reduced-motion: no-preference) {
+    .mobile-menu {
+      transition: translate 200ms var(--ease-out-soft);
+
+      @starting-style {
+        translate: 0 -0.375rem;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-btn-icon {
+      transition: none;
+    }
   }
 
   /* Monospace pill for a stack entry or a state legend. */
@@ -360,13 +686,79 @@
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    border-radius: 0.4rem;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--line);
     background-color: var(--surface);
     padding: 0.3125rem 0.5625rem;
     font-family: var(--font-mono);
     font-size: var(--text-meta);
     color: var(--ink);
+  }
+
+  /*
+   * As a control, a chip is raised by the elevation ring rather than outlined
+   * (the transparent border keeps its size), turns signal on hover, presses,
+   * and grows to a finger-sized target.
+   */
+  button.chip {
+    border-color: transparent;
+    box-shadow: var(--shadow-border);
+    cursor: pointer;
+    transition-property: scale, box-shadow;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  @media (hover: hover) {
+    button.chip:hover:enabled {
+      box-shadow: 0 0 0 1px var(--signal);
+    }
+  }
+
+  button.chip:disabled {
+    cursor: default;
+  }
+
+  @media (pointer: coarse) {
+    button.chip {
+      min-height: var(--target-min);
+      padding-inline: 0.875rem;
+    }
+  }
+
+  /*
+   * An underline that draws in from the left on hover and withdraws to the
+   * right — scaled, so it stays on the compositor. For a single-line label
+   * inside a link; running prose keeps a real text-decoration (below).
+   */
+  .link-underline {
+    position: relative;
+  }
+
+  .link-underline::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -0.125rem;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 200ms var(--ease-out-soft);
+  }
+
+  a:focus-visible .link-underline::after,
+  a.link-underline:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  @media (hover: hover) {
+    a:hover .link-underline::after,
+    a.link-underline:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
   }
 
   .prose-page {
@@ -382,26 +774,27 @@
     color: var(--ink);
   }
 
+  /* The underline is quieter than the text at rest and comes up to full on
+     hover; the text itself never changes. */
   .prose-page a {
     color: var(--signal);
     text-decoration: underline;
     text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in oklab, var(--signal) 45%, transparent);
     text-underline-offset: 2px;
+    transition: text-decoration-color var(--default-transition-duration) var(--ease-out-soft);
   }
 
-  .prose-page a:hover {
-    text-decoration-thickness: 2px;
+  @media (hover: hover) {
+    .prose-page a:hover {
+      text-decoration-color: var(--signal);
+    }
   }
 
   /*
-   * Scroll-driven reveal. Runs on the compositor via the native view timeline
-   * where it exists, and is simply absent everywhere else — no JS, no observer,
-   * nothing to hydrate.
-   *
-   * Transform only, deliberately. A fade reads well but an element part-way
-   * through a scroll range rests at partial opacity, and text at partial opacity
-   * against the page is a contrast failure rather than an effect — measured at
-   * 1.83:1 here before this was changed. Movement carries the reveal instead.
+   * Scroll-driven reveal on the native view timeline, absent where unsupported —
+   * no JS. Transform only: an element mid-range would rest at partial opacity,
+   * and text at partial opacity fails contrast.
    */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {

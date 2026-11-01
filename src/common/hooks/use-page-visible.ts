@@ -1,5 +1,7 @@
 'use client';
 
+// Client: a hook — React state and effects, used only by client components.
+
 import { useEffect, useState } from 'react';
 
 /**

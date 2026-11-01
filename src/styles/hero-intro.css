@@ -1,0 +1,348 @@
+/*
+ * The home page's opening scene. Owned by the home module. Driven by
+ * `ScrollScene`; the finished scene is the default. Text is only ever fully
+ * shown or hidden at rest — a line steps in, it never rests half-faded.
+ */
+
+/* Needed: the full-bleed pool is 100vw, a scrollbar wider than the page; clip (not hidden) keeps the stage sticky. */
+body:has(.hero-intro) {
+  overflow-x: clip;
+}
+
+@layer components {
+  .hero-intro {
+    /* Slices of the scene inside HERO_INTRO_BEATS (hero-intro.tsx). The strike's
+       start is set inline from that list; the rise ends where INTRO_PULLBACK
+       (lib/flow-field-scroll) starts drawing the camera back. */
+    --hero-intro-type-from: 0.1;
+    --hero-intro-lift-to: 0.08;
+    --hero-intro-type-to: 0.4;
+    --hero-intro-strike-to: 0.56;
+    --hero-intro-rise-from: 0.54;
+    --hero-intro-rise-to: 0.72;
+    --hero-intro-surface-from: 0.04;
+    --hero-intro-surface-to: 0.1;
+
+    position: relative;
+  }
+
+  /*
+   * The stage is one screen. The scene starts under the translucent site
+   * header, so the first pixel of scroll moves it; the padding keeps every
+   * line below the header.
+   */
+  .hero-intro-stage {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-top: calc(var(--header-h) + clamp(0.75rem, 4svh, 2.5rem));
+    padding-bottom: clamp(2.75rem, 9svh, 5rem);
+  }
+
+  /*
+   * Scrubbed by scroll only at `pin`, where the stage and the whole card fit
+   * one screen. Below it the scene is in flow, as tall as its content needs
+   * (so nothing is cropped on a short or narrow screen), and ScrollScene plays
+   * the strike once on a clock (hero-intro.tsx).
+   */
+  @variant pin {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero-intro {
+        height: 260svh;
+      }
+
+      .hero-intro-stage {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+      }
+    }
+  }
+
+  /* Without scripts nothing drives the scene, so it is the finished one, in
+     flow. `!important` for the same reason: the server renders the scene's
+     start as an inline `--progress: 0`. */
+  @media (scripting: none) {
+    .hero-intro {
+      --progress: 1 !important;
+      height: auto !important;
+    }
+
+    .hero-intro-stage {
+      position: relative !important;
+      height: auto !important;
+    }
+
+    /* The server renders the first beat; nothing moves it on, so the struck
+       report steps back here rather than off `data-beat`. Scoped to the scene
+       to outrank the base rule further down. */
+    .hero-intro .hero-intro-reported {
+      color: var(--ink-muted);
+    }
+  }
+
+  /*
+   * The pool. Full-bleed behind the text on a phone, fading out under the
+   * name; to the right of the column on a wide screen.
+   */
+  .hero-intro-pool {
+    position: absolute;
+    z-index: -1;
+    inset-block: 0;
+    left: 50%;
+    width: 100vw;
+    translate: -50% 0;
+    mask-image: linear-gradient(to bottom, transparent 0%, transparent 22%, black 50%, black 82%, transparent 100%);
+  }
+
+  @media (min-width: 64rem) {
+    .hero-intro-pool {
+      left: auto;
+      right: calc(50% - 50vw);
+      width: 66vw;
+      translate: none;
+      mask-image:
+        linear-gradient(to right, transparent 0%, black 30%),
+        linear-gradient(to bottom, transparent 0%, black 18%, black 84%, transparent 100%);
+      mask-composite: intersect;
+      -webkit-mask-composite: source-in;
+    }
+  }
+
+  /* The text never takes the pool's touches, except where it is text. */
+  .hero-intro-content {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 4.5svh, 2.75rem);
+    max-width: 44rem;
+    pointer-events: none;
+  }
+
+  .hero-intro-content > * {
+    pointer-events: auto;
+  }
+
+  @media (min-width: 64rem) {
+    .hero-intro-content {
+      max-width: 40rem;
+    }
+  }
+
+  /*
+   * At the very top the name sits lower, near the middle of the screen, with
+   * the empty card beneath it unseen; it rises to its place as the card's
+   * surface arrives. Transform only, and never below the fold: the lift is a
+   * share of the screen's height.
+   */
+  .hero-intro-identity {
+    transform: translateY(calc((1 - clamp(0, var(--progress, 1) / var(--hero-intro-lift-to), 1)) * min(18svh, 11rem)));
+  }
+
+  .hero-intro-name {
+    margin-top: clamp(0.5rem, 1.6svh, 1.25rem);
+    font-size: clamp(2.75rem, min(10vw, 10.5svh), 7rem);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+  }
+
+  /*
+   * The card. Its surface fades in as a graphic behind the text, so the pool
+   * shows under the name alone at the start and the sentences always sit on a
+   * solid enough ground to read.
+   */
+  .hero-intro-card {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(0.875rem, 2.6svh, 1.75rem) clamp(1rem, 3vw, 1.75rem);
+  }
+
+  .hero-intro-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: var(--radius);
+    /* Near-solid, not frosted: a backdrop blur over a pool that redraws every
+       frame is re-blurred every frame. */
+    background-color: color-mix(in oklab, var(--surface) 92%, transparent);
+    /* A ring, not a border: the card floats over the moving pool, where a solid
+       line colour holds against one shade of it at a time. */
+    box-shadow: var(--shadow-border), var(--shadow-float);
+    opacity: clamp(
+      0,
+      (var(--progress, 1) - var(--hero-intro-surface-from)) /
+        (var(--hero-intro-surface-to) - var(--hero-intro-surface-from)),
+      1
+    );
+  }
+
+  .hero-intro-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .hero-intro-label-signal {
+    margin-top: clamp(0.625rem, 2.4svh, 1.5rem);
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  /* A whole line that steps in once the scene reaches its `--at`. */
+  .hero-intro-step {
+    --on: round(up, clamp(0, (var(--progress, 1) - var(--at, 0)) * 1000, 1), 1);
+
+    opacity: var(--on);
+    transform: translateY(calc((1 - var(--on)) * 0.5rem));
+    transition:
+      opacity 180ms linear,
+      transform 320ms var(--ease-out-soft);
+  }
+
+  /* The report, typed: one character per step of `--typed`. */
+  .hero-intro-reported {
+    --typed: calc(
+      clamp(
+          0,
+          (var(--progress, 1) - var(--hero-intro-type-from)) / (var(--hero-intro-type-to) - var(--hero-intro-type-from)),
+          1
+        ) *
+        var(--n, 0)
+    );
+    --strike: clamp(
+      0,
+      (var(--progress, 1) - var(--hero-intro-strike-from)) /
+        (var(--hero-intro-strike-to) - var(--hero-intro-strike-from)),
+      1
+    );
+
+    margin-top: 0.375rem;
+    font-size: clamp(1.5rem, min(8.4vw, 7.2svh), 4.25rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    text-wrap: balance;
+    transition: color 400ms var(--ease-out-soft);
+  }
+
+  /* Struck, it steps back: still legible, no longer the claim. */
+  .hero-intro[data-beat='2'] .hero-intro-reported,
+  .hero-intro[data-beat='3'] .hero-intro-reported {
+    color: var(--ink-muted);
+  }
+
+  .hero-intro-word {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  /* The strike: drawn across each word in turn, through the space after it. */
+  .hero-intro-word::after {
+    content: '';
+    position: absolute;
+    left: -0.04em;
+    right: -0.3em;
+    top: 54%;
+    height: max(3px, 0.08em);
+    border-radius: var(--radius-pill);
+    background-color: var(--signal);
+    transform-origin: left;
+    transform: scaleX(clamp(0, var(--strike) * var(--wn, 1) - var(--w, 0), 1));
+  }
+
+  .hero-intro-word:last-child::after {
+    right: -0.04em;
+  }
+
+  .hero-intro-char {
+    --on: round(up, clamp(0, var(--typed) - var(--i, 0), 1), 1);
+
+    display: inline-block;
+    opacity: var(--on);
+    transform: translateY(calc((1 - var(--on)) * 0.3em));
+    transition:
+      opacity 90ms linear,
+      transform 200ms var(--ease-out-soft);
+  }
+
+  /* What it was: each word rises out of a mask, one after another. */
+  .hero-intro-actual {
+    --rise: clamp(
+      0,
+      (var(--progress, 1) - var(--hero-intro-rise-from)) / (var(--hero-intro-rise-to) - var(--hero-intro-rise-from)),
+      1
+    );
+
+    margin-top: 0.375rem;
+    font-size: clamp(1.125rem, min(5.2vw, 4.2svh), 2.25rem);
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .hero-intro-mask {
+    display: inline-block;
+    overflow: clip;
+    vertical-align: bottom;
+    /* Room for descenders inside the mask, given back to the line. */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+
+  .hero-intro-rise {
+    --on: round(up, clamp(0, var(--rise) * var(--wn, 1) - var(--w, 0), 1), 1);
+
+    display: inline-block;
+    transform: translateY(calc((1 - var(--on)) * 115%));
+    transition: transform 520ms var(--ease-out-soft);
+  }
+
+  .hero-intro-context {
+    margin-top: clamp(0.625rem, 2.2svh, 1.25rem);
+    font-size: var(--text-meta);
+    color: var(--ink-muted);
+  }
+
+  /* The cue: there at rest at the top, gone the moment the scene moves. */
+  .hero-intro-cue {
+    --moved: round(up, clamp(0, var(--progress, 1) * 1000, 1), 1);
+
+    position: absolute;
+    left: 50%;
+    bottom: clamp(0.5rem, 2.5svh, 1.5rem);
+    translate: -50% 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    color: var(--ink-muted);
+    opacity: calc(1 - var(--moved));
+    transition: opacity 240ms linear;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-intro-cue-chevron {
+      animation: hero-intro-cue 1.6s var(--ease-out-soft) infinite;
+    }
+  }
+
+  @keyframes hero-intro-cue {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(5px);
+    }
+  }
+}

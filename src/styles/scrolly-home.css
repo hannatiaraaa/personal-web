@@ -1,0 +1,354 @@
+/* Scroll stories on the home page. Owned by the home module. */
+
+@layer components {
+  /*
+   * Selected work. The default is the finished story: a column of cards, each
+   * drawing beside its text. Only where the stage pins, motion is allowed and
+   * scripts run does it become a pinned panel beside steps (the `live` block).
+   */
+  .work-story-stage > .scrolly-visual {
+    display: none;
+  }
+
+  /* Concentric: the card's radius is the drawing's plus the padding between them. */
+  .work-story-card {
+    --work-story-pad: 0.75rem;
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: var(--work-story-pad);
+    border-radius: calc(var(--radius-sm) + var(--work-story-pad));
+    background-color: var(--surface);
+    box-shadow: var(--shadow-border);
+  }
+
+  .work-story-card-art {
+    aspect-ratio: 16 / 10;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    background:
+      radial-gradient(70% 80% at 50% 40%, color-mix(in oklab, var(--signal-wash) 90%, transparent), transparent),
+      var(--surface-sunk);
+  }
+
+  .work-story-card-text {
+    padding: 0 0.5rem 0.75rem;
+  }
+
+  .work-story-rule {
+    display: none;
+  }
+
+  @media (min-width: 40rem) {
+    .work-story-card {
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      align-items: center;
+    }
+
+    .work-story-card-text {
+      padding: 0.75rem 0.75rem 0.75rem 0;
+    }
+  }
+
+  @variant pin {
+    /* Not pinned (reduced motion, no scripts): two cards a row, drawing on top. */
+    .work-story-stage {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .work-story-stage > .scrolly-steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+      padding-block-end: 0;
+    }
+
+    .work-story-stage .scrolly-step {
+      min-height: 0;
+    }
+
+    .work-story-card {
+      height: 100%;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .work-story-card-text {
+      padding: 0 0.5rem 0.75rem;
+    }
+
+    @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+      .work-story-stage[data-stage-state='live'] {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+
+      .work-story-stage[data-stage-state='live'] > .scrolly-visual {
+        display: block;
+      }
+
+      .work-story-stage[data-stage-state='live'] > .scrolly-steps {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        padding-block-end: var(--stage-tail);
+      }
+
+      .work-story-stage[data-stage-state='live'] .scrolly-step {
+        min-height: var(--stage-step-min);
+      }
+
+      .work-story-stage[data-stage-state='live'] .work-story-card {
+        display: block;
+        height: auto;
+        max-width: 36rem;
+        padding: 0 0 0 1.5rem;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+      }
+
+      .work-story-stage[data-stage-state='live'] .work-story-card-art {
+        display: none;
+      }
+
+      .work-story-stage[data-stage-state='live'] .work-story-card-text {
+        padding: 0;
+      }
+
+      /* The rule beside the step grows to full height while it is the one read. */
+      .work-story-stage[data-stage-state='live'] .work-story-rule {
+        display: block;
+        position: absolute;
+        inset-block: 0;
+        left: 0;
+        width: 2px;
+        border-radius: var(--radius-pill);
+        transform: scaleY(0.15);
+        transform-origin: top;
+        transition: transform 0.55s var(--ease-out-soft);
+      }
+
+      .work-story-stage[data-stage-state='live'] .scrolly-step[aria-current='step'] .work-story-rule {
+        transform: scaleY(1);
+      }
+    }
+  }
+
+  /*
+   * The panel: every study's frame shares one grid cell; the active one is
+   * unclipped, the rest clipped to nothing and a little low, so a change reads as
+   * a wipe upward — never a fade. Per-index selectors: the stage writes the index.
+   */
+  .work-story-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.25rem;
+    background:
+      radial-gradient(80% 60% at 50% 35%, color-mix(in oklab, var(--signal-wash) 85%, transparent), transparent),
+      var(--surface);
+  }
+
+  /* One column held to the panel, or a caption's nowrap text would widen it. */
+  .work-story-frames {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+  }
+
+  .work-story-frame {
+    --on: 0;
+
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(1.5rem) scale(0.97);
+    transition:
+      clip-path 0.6s var(--ease-out-soft),
+      transform 0.6s var(--ease-out-soft);
+  }
+
+  .work-story-frame-art {
+    flex: 1;
+    min-height: 0;
+    margin-top: 1rem;
+  }
+
+  .work-story-stage[data-active-step='0'] [data-frame='0'],
+  .work-story-stage[data-active-step='1'] [data-frame='1'],
+  .work-story-stage[data-active-step='2'] [data-frame='2'],
+  .work-story-stage[data-active-step='3'] [data-frame='3'],
+  .work-story-stage[data-active-step='4'] [data-frame='4'],
+  .work-story-stage[data-active-step='5'] [data-frame='5'] {
+    --on: 1;
+
+    clip-path: inset(0);
+    transform: none;
+  }
+
+  .work-story-tick-fill {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.55s var(--ease-out-soft);
+  }
+
+  /* Every tick up to the active one is filled: how far through the story. */
+  .work-story-stage[data-active-step='0'] .work-story-tick:nth-child(-n + 1) .work-story-tick-fill,
+  .work-story-stage[data-active-step='1'] .work-story-tick:nth-child(-n + 2) .work-story-tick-fill,
+  .work-story-stage[data-active-step='2'] .work-story-tick:nth-child(-n + 3) .work-story-tick-fill,
+  .work-story-stage[data-active-step='3'] .work-story-tick:nth-child(-n + 4) .work-story-tick-fill,
+  .work-story-stage[data-active-step='4'] .work-story-tick:nth-child(-n + 5) .work-story-tick-fill,
+  .work-story-stage[data-active-step='5'] .work-story-tick:nth-child(-n + 6) .work-story-tick-fill {
+    transform: scaleX(1);
+  }
+
+  /*
+   * A card's drawing draws itself in once the reader reaches its step, and
+   * stays drawn for every step above. Finished by default; held back only where
+   * motion is allowed and scripts will move the story on.
+   */
+  .work-story-card-art {
+    --on: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .work-story-card-art {
+      --on: 0;
+    }
+
+    .work-story-stage[data-active-step='0'] [data-step='0'] .work-story-card-art,
+    .work-story-stage[data-active-step='1'] :is([data-step='0'], [data-step='1']) .work-story-card-art,
+    .work-story-stage[data-active-step='2'] :is([data-step='0'], [data-step='1'], [data-step='2']) .work-story-card-art,
+    .work-story-stage[data-active-step='3']
+      :is([data-step='0'], [data-step='1'], [data-step='2'], [data-step='3'])
+      .work-story-card-art,
+    .work-story-stage[data-active-step='4']
+      :is([data-step='0'], [data-step='1'], [data-step='2'], [data-step='3'], [data-step='4'])
+      .work-story-card-art,
+    .work-story-stage[data-active-step='5'] .work-story-card-art {
+      --on: 1;
+    }
+  }
+
+  /*
+   * The parts of a drawing, each moved by `--on` (0 before, 1 drawn) and placed
+   * in a stagger by `--i`. Transform only: a part is scaled, grown or slid into
+   * place, never faded, so the labels inside a drawing are never half-visible.
+   */
+  .work-still {
+    --work-still-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --work-still-step: 90ms;
+  }
+
+  .work-still-pop,
+  .work-still-stamp,
+  .work-still-dot,
+  .work-still-ring,
+  .work-still-grow-x,
+  .work-still-grow-y,
+  .work-still-slide {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.5s var(--work-still-spring) calc(var(--i, 0) * var(--work-still-step));
+  }
+
+  .work-still-pop,
+  .work-still-dot,
+  .work-still-ring {
+    transform: scale(var(--on, 1));
+  }
+
+  /* A sweep across the run: the dots land fast, one after another, and the
+     quarantine ring lands last. */
+  .work-still-dot,
+  .work-still-ring {
+    transition-delay: calc(var(--i, 0) * 5ms);
+  }
+
+  .work-still-dot {
+    transition-duration: 0.35s;
+  }
+
+  .work-still-ring {
+    transition-duration: 0.6s;
+  }
+
+  /* Slammed down: grows from nothing with a twist and an overshoot. */
+  .work-still-stamp {
+    transform: scale(var(--on, 1)) rotate(calc((1 - var(--on, 1)) * -24deg));
+    transition-duration: 0.45s;
+  }
+
+  .work-still-grow-x {
+    transform-origin: left center;
+    transform: scaleX(var(--on, 1));
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  .work-still-grow-x[data-from='end'] {
+    transform-origin: right center;
+  }
+
+  .work-still-grow-y {
+    transform-origin: center bottom;
+    transform: scaleY(var(--on, 1));
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  .work-still-slide {
+    transform: translateX(calc((var(--on, 1) - 1) * 11px));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-story-frame,
+    .work-story-tick-fill,
+    .work-still-pop,
+    .work-still-stamp,
+    .work-still-dot,
+    .work-still-ring,
+    .work-still-grow-x,
+    .work-still-grow-y,
+    .work-still-slide {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Practice: the three cards rise in turn, each on its own view timeline, a
+   * later card starting later so a row arrives left to right. Stacked on a phone
+   * the offsets are dropped. Transform only, as for `.reveal`.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .practice-card {
+        animation: practice-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 22%;
+      }
+
+      @media (min-width: 40rem) {
+        .practice-card:nth-child(2) {
+          animation-range: entry 25% cover 30%;
+        }
+
+        .practice-card:nth-child(3) {
+          animation-range: entry 45% cover 38%;
+        }
+      }
+    }
+  }
+
+  @keyframes practice-rise {
+    from {
+      transform: translateY(28px) scale(0.99);
+    }
+    to {
+      transform: none;
+    }
+  }
+}

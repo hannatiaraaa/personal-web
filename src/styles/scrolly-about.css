@@ -1,0 +1,708 @@
+/* Scroll stories on the about page. Owned by the about module. */
+
+@layer components {
+  /*
+   * The arc. Below `pin` no band is tall enough to hold a scene without covering
+   * the era being read, so the panel is hidden and each era card carries its own
+   * scene and layer strip; likewise under reduced motion. Only one copy of a
+   * scene is ever displayed, so assistive tech meets each once.
+   */
+  .arc-stage > .scrolly-visual {
+    display: none;
+  }
+
+  .arc-era-scene {
+    height: min(11rem, 28svh);
+    margin-block-end: 1rem;
+  }
+
+  /* With room beside it, the scene sits left of the text instead of above. */
+  @media (min-width: 40rem) {
+    .arc-era {
+      display: grid;
+      grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+      column-gap: 1.5rem;
+      align-items: center;
+    }
+
+    .arc-era-scene {
+      height: auto;
+      aspect-ratio: 16 / 10;
+      margin-block-end: 0;
+    }
+  }
+
+  /*
+   * The era's place on the spine, in its card. The strip is a segment per
+   * layer, as many columns as there are layers, filled up to this era; the
+   * layer it added stands taller.
+   */
+  .arc-era-layers {
+    display: grid;
+    gap: 0.5rem;
+    margin-block-start: 1rem;
+  }
+
+  .arc-era-layer-strip {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 18rem;
+  }
+
+  .arc-era-layer {
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--line-strong);
+  }
+
+  .arc-era-layer[data-owned] {
+    background: linear-gradient(90deg, var(--sky-high), var(--signal-cyan));
+  }
+
+  .arc-era-layer[data-new] {
+    height: 0.875rem;
+  }
+
+  @variant pin {
+    .arc-stage > .scrolly-visual {
+      display: block;
+    }
+
+    .arc-era {
+      display: block;
+    }
+
+    :is(.arc-era-scene, .arc-era-layer-strip) {
+      display: none;
+    }
+
+    .arc-stage.scrolly-stage[data-stage-state='final'] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .arc-stage[data-stage-state='final'] > .scrolly-visual {
+      display: none;
+    }
+
+    .arc-stage[data-stage-state='final'] .arc-era {
+      display: grid;
+    }
+
+    .arc-stage[data-stage-state='final'] .arc-era-scene {
+      display: block;
+    }
+
+    .arc-stage[data-stage-state='final'] .arc-era-layer-strip {
+      display: grid;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .arc-stage.scrolly-stage {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .arc-stage > .scrolly-visual {
+        display: none;
+      }
+
+      .arc-era {
+        display: grid;
+      }
+
+      .arc-era-scene {
+        display: block;
+      }
+
+      .arc-era-layer-strip {
+        display: grid;
+      }
+    }
+  }
+
+  /*
+   * The active era as a number: one line per era turns the stage's attribute
+   * into `--active-step`, which every per-era piece compares with its `--era`
+   * (or `--from`) in calc(). Only this list depends on the era count;
+   * e2e/about-story.spec.ts fails if an era is missing here.
+   */
+  .arc-stage {
+    --active-step: 0;
+  }
+
+  .arc-stage[data-active-step='1'] {
+    --active-step: 1;
+  }
+
+  .arc-stage[data-active-step='2'] {
+    --active-step: 2;
+  }
+
+  .arc-stage[data-active-step='3'] {
+    --active-step: 3;
+  }
+
+  .arc-stage[data-active-step='4'] {
+    --active-step: 4;
+  }
+
+  .arc-stage[data-active-step='5'] {
+    --active-step: 5;
+  }
+
+  .arc-stage[data-active-step='6'] {
+    --active-step: 6;
+  }
+
+  .arc-stage[data-active-step='7'] {
+    --active-step: 7;
+  }
+
+  .arc-stage[data-active-step='8'] {
+    --active-step: 8;
+  }
+
+  .arc-stage[data-active-step='9'] {
+    --active-step: 9;
+  }
+
+  .arc-stage[data-active-step='10'] {
+    --active-step: 10;
+  }
+
+  .arc-stage[data-active-step='11'] {
+    --active-step: 11;
+  }
+
+  .arc-visual {
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    /* One row the height of the card, so the scene row below can give way and
+       the drawing scales down to the band rather than pushing past the card. */
+    grid-template-rows: minmax(0, 1fr);
+    gap: 1.25rem;
+    height: 100%;
+    padding: 1.5rem 1.25rem;
+  }
+
+  /*
+   * Per-era pieces of the panel. `--offset` is -1 for an era already passed,
+   * 0 for the one being read and 1 for one still ahead; `--reached` is 1 from
+   * the era on; `--current` only on it.
+   */
+  :is(.arc-dot, .arc-year, .arc-place, .arc-scene) {
+    --offset: clamp(-1, var(--era) - var(--active-step), 1);
+    --reached: clamp(0, var(--active-step) - var(--era) + 1, 1);
+    --current: clamp(0, 1 - max(var(--era) - var(--active-step), var(--active-step) - var(--era)), 1);
+  }
+
+  /* A count holds across its run of eras (`--from` to `--to`): below until the run starts, above once it ends. */
+  .arc-layers-count-value {
+    --offset: calc(clamp(0, var(--from) - var(--active-step), 1) - clamp(0, var(--active-step) - var(--to), 1));
+  }
+
+  /* Spine: a hairline track, a gradient fill scaled down it, a dot per era. */
+  .arc-spine {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .arc-spine-track,
+  .arc-spine-fill {
+    position: absolute;
+    inset-block: 0.375rem;
+    left: 50%;
+    width: 2px;
+    translate: -50% 0;
+    border-radius: 1px;
+  }
+
+  .arc-spine-track {
+    background: var(--line);
+  }
+
+  .arc-spine-fill {
+    background: linear-gradient(to bottom, var(--sky-high), var(--signal-cyan));
+    transform-origin: top;
+    transform: scaleY(calc(var(--active-step) / max(1, var(--era-count) - 1)));
+  }
+
+  .arc-dot {
+    position: relative;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+  }
+
+  /* Lit by scaling a fill in, so the change stays on the compositor. */
+  .arc-dot::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: var(--signal-cyan);
+    transform: scale(var(--reached));
+  }
+
+  /* The era being read wears a ring. */
+  .arc-dot::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border: 2px solid var(--signal-cyan);
+    border-radius: inherit;
+    transform: scale(var(--current));
+  }
+
+  .arc-panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .arc-panel-head {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  /*
+   * Period, place, scene and count each stack every era in one grid cell,
+   * clipped, and slide the active one into it: the passed ones above, the ones
+   * ahead below. Swapped by transform, never faded, so text is never painted
+   * at partial opacity.
+   */
+  :is(.arc-years, .arc-places, .arc-scenes, .arc-layers-count-cell) {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .arc-scenes {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  :is(.arc-year, .arc-place, .arc-scene, .arc-layers-count-value) {
+    grid-area: 1 / 1;
+    min-width: 0;
+    min-height: 0;
+    transform: translateY(calc(var(--offset) * 110%));
+  }
+
+  .arc-years {
+    font-size: clamp(1.75rem, 10cqi, 3rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+
+  :is(.arc-year, .arc-place) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /*
+   * Layers owned: the spine of the story. A chip per layer, lit from the era
+   * that added it (`--from`) on; the layer the current era added wears a
+   * "new" tag. Colours switch at once; only the fill bar and the tag move.
+   */
+  .arc-layers {
+    display: grid;
+    gap: 0.75rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .arc-layers-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .arc-layers-count {
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    font-size: clamp(1.75rem, 9cqi, 2.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .arc-layers-count-total {
+    color: var(--ink-faint);
+    font-size: 0.5em;
+    letter-spacing: 0;
+  }
+
+  .arc-layers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: 0.5rem;
+  }
+
+  /* Four across once there is room, so seven layers sit in two even rows. */
+  @container (min-width: 24rem) {
+    .arc-layers-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .arc-layer {
+    --owned: clamp(0, var(--active-step) - var(--from) + 1, 1);
+    --is-new: clamp(0, 1 - max(var(--active-step) - var(--from), var(--from) - var(--active-step)), 1);
+
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.4375rem;
+    padding: 0.5rem 0.625rem 0.5625rem;
+    border-radius: var(--radius-sm);
+    background: color-mix(in oklab, var(--signal-wash) calc(var(--owned) * 100%), var(--surface-sunk));
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--signal) calc(var(--owned) * 100%), var(--line)),
+      0 0 0 3px color-mix(in oklab, var(--signal-cyan) calc(var(--is-new) * 40%), transparent);
+  }
+
+  .arc-layer-bar {
+    height: 0.375rem;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: var(--line);
+  }
+
+  .arc-layer-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--sky-high), var(--signal-cyan));
+    transform-origin: left;
+    transform: scaleX(var(--owned));
+  }
+
+  .arc-layer-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: color-mix(in oklab, var(--ink) calc(var(--owned) * 100%), var(--ink-faint));
+  }
+
+  .arc-layer-new {
+    position: absolute;
+    inset-block-start: -0.5rem;
+    inset-inline-end: 0.375rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: var(--radius-pill);
+    background: var(--signal);
+    color: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1.4;
+    transform: scale(var(--is-new));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :is(.arc-year, .arc-place, .arc-scene, .arc-layers-count-value, .arc-spine-fill) {
+      transition: transform 520ms var(--ease-out-soft);
+    }
+
+    .arc-dot::after,
+    .arc-dot::before,
+    .arc-layer-new {
+      transition: transform 320ms var(--ease-out-soft);
+    }
+
+    /* Layers fill a beat after the scene lands, so the eye goes there next. */
+    .arc-layer-fill {
+      transition: transform 700ms 180ms var(--ease-out-soft);
+    }
+
+    .arc-stage[data-stage-state='live'] .scrolly-step[aria-current='step'] .arc-era-layer[data-new] {
+      animation: arc-layer-pop 600ms 200ms var(--ease-out-soft) both;
+    }
+  }
+
+  @keyframes arc-layer-pop {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* The era being read carries the card's interaction edge. */
+  .arc-stage[data-stage-state='live'] .scrolly-step[aria-current='step'] > .arc-era::after {
+    opacity: 0.85;
+  }
+
+  /*
+   * Scenes. Each one's markup is its era's final state; motion plays toward it
+   * only on the scene being read, so it replays on return and is absent once the
+   * stage is final or motion is reduced. Text moves only by transform.
+   */
+  :is(.era-scene g, .era-scene [class*='scene-in-']) {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :is(
+      .arc-stage[data-stage-state='live'][data-active-step='0'] .arc-scene[data-era='0'],
+      .arc-stage[data-stage-state='live'][data-active-step='1'] .arc-scene[data-era='1'],
+      .arc-stage[data-stage-state='live'][data-active-step='2'] .arc-scene[data-era='2'],
+      .arc-stage[data-stage-state='live'][data-active-step='3'] .arc-scene[data-era='3'],
+      .arc-stage[data-stage-state='live'][data-active-step='4'] .arc-scene[data-era='4'],
+      .arc-stage[data-stage-state='live'][data-active-step='5'] .arc-scene[data-era='5'],
+      .arc-stage[data-stage-state='live'][data-active-step='6'] .arc-scene[data-era='6'],
+      .arc-stage[data-stage-state='live'][data-active-step='7'] .arc-scene[data-era='7'],
+      .arc-stage[data-stage-state='live'][data-active-step='8'] .arc-scene[data-era='8'],
+      .arc-stage[data-stage-state='live'][data-active-step='9'] .arc-scene[data-era='9'],
+      .arc-stage[data-stage-state='live'][data-active-step='10'] .arc-scene[data-era='10'],
+      .arc-stage[data-stage-state='live'][data-active-step='11'] .arc-scene[data-era='11'],
+      .arc-stage[data-stage-state='live'] .scrolly-step[aria-current='step'] .arc-era-scene
+    ) {
+      /* Shared entrances, each delayed by its own `--d`. */
+      .scene-in-pop {
+        animation: scene-pop 0.45s var(--d, 0s) var(--ease-out-soft) both;
+      }
+
+      .scene-in-fade {
+        animation: scene-shape-in 0.6s var(--d, 0s) var(--ease-out-soft) both;
+      }
+
+      .scene-in-slide {
+        animation: scene-slide-in 0.6s var(--d, 0s) var(--ease-out-soft) both;
+      }
+
+      .scene-in-turn {
+        animation: scene-turn 1.2s var(--d, 0s) var(--ease-out-soft) both;
+      }
+
+      .scene-app-left {
+        animation: scene-converge-left 1.4s var(--ease-out-soft) both;
+      }
+
+      .scene-app-right {
+        animation: scene-converge-right 1.4s var(--ease-out-soft) both;
+      }
+
+      .scene-merge {
+        animation: scene-shape-in 0.8s 0.7s var(--ease-out-soft) both;
+      }
+
+      .scene-app-unified {
+        animation: scene-grow-in 0.9s 0.5s var(--ease-out-soft) both;
+      }
+
+      .scene-vessel {
+        animation: scene-sail 2.6s var(--ease-out-soft) both;
+      }
+
+      .scene-vessel-bob {
+        animation: scene-bob 3.2s 2.6s ease-in-out infinite;
+      }
+
+      .scene-signal {
+        animation: scene-signal-pulse 2.4s ease-out infinite;
+      }
+
+      .scene-signal:nth-child(2) {
+        animation-delay: 0.3s;
+      }
+
+      .scene-signal:nth-child(3) {
+        animation-delay: 0.6s;
+      }
+
+      .scene-rung-lit {
+        animation: scene-shape-in 0.5s var(--rung-delay, 0s) var(--ease-out-soft) both;
+      }
+
+      .scene-rung-check {
+        animation: scene-pop 0.45s calc(var(--rung-delay, 0s) + 0.25s) var(--ease-out-soft) both;
+      }
+
+      .scene-case-check {
+        animation: scene-pop 0.4s var(--case-delay, 0s) var(--ease-out-soft) both;
+      }
+
+      .scene-gate-arm {
+        animation: scene-gate-open 0.7s 1.45s var(--ease-out-soft) both;
+      }
+
+      .scene-release {
+        animation: scene-shape-in 0.6s 1.9s var(--ease-out-soft) both;
+      }
+    }
+  }
+
+  @keyframes scene-converge-left {
+    from {
+      transform: translateX(-14px) rotate(-9deg);
+    }
+  }
+
+  @keyframes scene-converge-right {
+    from {
+      transform: translateX(14px) rotate(9deg);
+    }
+  }
+
+  @keyframes scene-slide-in {
+    from {
+      transform: translateX(-12px);
+    }
+  }
+
+  @keyframes scene-turn {
+    from {
+      transform: rotate(-30deg) scale(0.8);
+    }
+  }
+
+  @keyframes scene-grow-in {
+    from {
+      transform: scale(0.8);
+    }
+  }
+
+  @keyframes scene-shape-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* The arcs ripple out from the mast and thin before the edge of range. */
+  .era-scene .scene-signal {
+    transform-box: view-box;
+    transform-origin: 30px 76px;
+  }
+
+  @keyframes scene-signal-pulse {
+    0% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    35% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.2;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes scene-sail {
+    from {
+      transform: translateX(-96px);
+    }
+  }
+
+  @keyframes scene-bob {
+    50% {
+      transform: translateY(2px) rotate(-1.5deg);
+    }
+  }
+
+  /* The ladder lights from the request upward, one tier after another. */
+  .scene-rung:nth-child(2) {
+    --rung-delay: 0.55s;
+  }
+
+  .scene-rung:nth-child(3) {
+    --rung-delay: 1.1s;
+  }
+
+  .scene-rung:nth-child(4) {
+    --rung-delay: 1.65s;
+  }
+
+  @keyframes scene-pop {
+    from {
+      transform: scale(0);
+    }
+  }
+
+  /* The run ticks through its cases; the arm lifts only after the last. */
+  .scene-case:nth-child(2) {
+    --case-delay: 0.25s;
+  }
+
+  .scene-case:nth-child(3) {
+    --case-delay: 0.5s;
+  }
+
+  .scene-case:nth-child(4) {
+    --case-delay: 0.75s;
+  }
+
+  .scene-case:nth-child(5) {
+    --case-delay: 1s;
+  }
+
+  /* Pivots where the arm meets the left post. */
+  .era-scene .scene-gate-arm {
+    transform-box: view-box;
+    transform-origin: 236px 92px;
+  }
+
+  @keyframes scene-gate-open {
+    from {
+      transform: rotate(78deg);
+    }
+  }
+
+  /*
+   * The contagion walk. Short steps beside the running model; the one being
+   * read carries the signal edge. The model itself is steered from its own
+   * component — a canvas cannot follow an attribute in CSS.
+   */
+  /*
+   * Below `pin` the model would scroll away above its steps, steering out of
+   * sight, so it stands alone there: no steps, no hint, and nothing steers it
+   * (guided-contagion-field.tsx). The caption carries the same explanation.
+   */
+  :is(.maths-stage > .scrolly-steps, .maths-walk-hint) {
+    display: none;
+  }
+
+  @variant pin {
+    .maths-stage > .scrolly-steps {
+      display: grid;
+    }
+
+    .maths-walk-hint {
+      display: block;
+    }
+  }
+
+  .walk-step {
+    border-inline-start: 2px solid var(--line);
+    padding-inline-start: 1rem;
+  }
+
+  .maths-stage[data-stage-state='live'] .scrolly-step[aria-current='step'] > .walk-step {
+    border-inline-start-color: var(--signal-cyan);
+  }
+}
+
+/*
+ * Pinned, the whole contagion figure — canvas, legend, controls and caption —
+ * has to fit the band below the header, or the caption is cut off on a short
+ * laptop. The canvas gives up the height. Unlayered on purpose: it overrides
+ * the canvas's own height utility, and utilities outrank the components layer.
+ */
+@variant pin {
+  .maths-stage .scrolly-visual canvas {
+    height: min(21rem, calc(100svh - 23rem));
+  }
+}

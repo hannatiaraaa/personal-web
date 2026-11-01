@@ -1,3 +1,5 @@
+import { CountUp, type CountTrigger } from './count-up';
+
 type Figure = {
   readonly value: string;
   readonly label: string;
@@ -7,16 +9,21 @@ type Props = {
   figures: readonly Figure[];
   /** `panel` for a masthead, `inline` inside a case study section. */
   variant?: 'panel' | 'inline';
+  /** Count each figure up as it scrolls in. The published value stays the text either way. */
+  animate?: boolean;
+  /** What drives the count when animated. `load` for a row that can be above the fold. */
+  countOn?: CountTrigger;
 };
 
 /**
- * Figures are the argument this site makes, so they get the mono face, tabular
- * numerals and enough room to read as data. The label is rendered once for
- * assistive tech and once visually, because the visual pairing is what carries
- * the meaning and a bare number would announce nothing.
+ * Figures get the mono face and tabular numerals. The label is rendered once for
+ * assistive tech and once visually, because a bare number announces nothing.
  */
-export function FigureRow({ figures, variant = 'panel' }: Props) {
+export function FigureRow({ figures, variant = 'panel', animate = false, countOn = 'scroll' }: Props) {
   const isPanel = variant === 'panel';
+  // The text gradient moves onto the counting layers when animated: a gradient
+  // clipped to this span's text would also paint the unpainted value beneath.
+  const gradient = isPanel ? 'signal-text' : '';
 
   return (
     <dl
@@ -35,10 +42,18 @@ export function FigureRow({ figures, variant = 'panel' }: Props) {
           <dd>
             <span
               className={`tnum block font-mono font-medium tracking-[-0.02em] ${
-                isPanel ? 'signal-text text-h2' : 'text-h3 text-ink'
-              }`}
+                isPanel ? 'text-h2' : 'text-h3 text-ink'
+              } ${animate ? '' : gradient}`}
             >
-              {figure.value}
+              {animate ? (
+                <CountUp
+                  value={figure.value}
+                  countOn={countOn}
+                  className={gradient}
+                />
+              ) : (
+                figure.value
+              )}
             </span>
             <span
               aria-hidden='true'

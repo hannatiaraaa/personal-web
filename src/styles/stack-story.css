@@ -1,0 +1,440 @@
+/*
+ * The /stack page: the skills library, each group with a scene that explains
+ * it. Owned by the stack module.
+ *
+ * Every state is `--stack-at` (the group the scene is on) against each step's
+ * `--i`, and the panel's scene follows the scene's `data-beat`. Both default to
+ * the finished page unless the stage is pinned and motion allowed. Text is only
+ * ever moved by transform, never faded.
+ */
+
+@layer components {
+  .stack-story {
+    --stack-at: var(--stack-count, 0);
+    /* A small overshoot, for things landing: a chip, a node. */
+    --stack-story-pop: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  /*
+   * Where each step and label is against the scene: `--d` below zero is
+   * settled, zero is the one the scene is on, above zero is still to come.
+   * `max(d, -d)` rather than `abs()`, which Chromium only gained in 2025.
+   */
+  :is(.stack-story-step, .stack-story-index-label) {
+    --d: calc(var(--i, 0) - var(--stack-at));
+    --is-pending: clamp(0, var(--d), 1);
+    --is-active: clamp(0, 1 - max(var(--d), -1 * var(--d)), 1);
+  }
+
+  /* ---- The scenes ---- */
+
+  /*
+   * Below `pin` the panel is hidden and each card carries its own scene;
+   * likewise under reduced motion and without scripts. Only one copy of a
+   * scene is ever displayed, so assistive tech meets each once.
+   */
+  .stack-story-visual {
+    display: none;
+  }
+
+  /* On a phone the scene runs to the card's edges, so its labels keep their size. */
+  .stack-story-card-scene {
+    margin: 1.25rem -1.25rem 0;
+    padding: 0.75rem 0.5rem;
+    background-color: var(--surface-sunk);
+    box-shadow:
+      inset 0 1px 0 var(--line),
+      inset 0 -1px 0 var(--line);
+  }
+
+  @media (min-width: 40rem) {
+    .stack-story-card-scene {
+      max-width: 26rem;
+      margin-inline: 0;
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+  }
+
+  /* A scene drops its minor labels where it is drawn small, rather than shrinking them. */
+  :is(.stack-story-card-scene, .stack-story-scenes) {
+    container: stack-scene / inline-size;
+  }
+
+  .stack-scene {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .stack-scene-label {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    fill: var(--ink);
+  }
+
+  .stack-scene-minor {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    fill: var(--ink-muted);
+  }
+
+  @container stack-scene (width < 19rem) {
+    .stack-scene-minor {
+      display: none;
+    }
+  }
+
+  .stack-scene-box {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 1.25;
+  }
+
+  .stack-scene-box-accent {
+    fill: var(--signal-wash);
+    stroke: var(--signal-bright);
+  }
+
+  :is(
+    .stack-scene-link,
+    .stack-scene-lifeline,
+    .stack-scene-rule,
+    .stack-scene-tier,
+    .stack-scene-tick,
+    .stack-scene-cross
+  ) {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .stack-scene-link {
+    stroke: var(--ink-muted);
+  }
+
+  .stack-scene-link-dashed {
+    stroke-dasharray: 4 4;
+  }
+
+  :is(.stack-scene-lifeline, .stack-scene-rule, .stack-scene-tier) {
+    stroke: var(--line-strong);
+    stroke-width: 1.25;
+  }
+
+  .stack-scene-lifeline {
+    stroke-dasharray: 2 4;
+  }
+
+  .stack-scene-rule {
+    stroke-dasharray: 3 3;
+  }
+
+  .stack-scene-pill {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+  }
+
+  .stack-scene-tick {
+    stroke: var(--pass);
+    stroke-width: 1.75;
+  }
+
+  .stack-scene-cross {
+    stroke: var(--caution);
+    stroke-width: 1.75;
+  }
+
+  .stack-mark {
+    color: var(--ink-muted);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .stack-mark-accent {
+    color: var(--signal);
+  }
+
+  .stack-mark-fill {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .stack-mark-text {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .stack-mark-text-small {
+    font-size: 7.5px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Every group's scene shares the panel's one cell; only the one the scene is on shows. */
+  .stack-story-scenes {
+    display: grid;
+    min-height: 0;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--surface-sunk);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .stack-story-scene {
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    visibility: hidden;
+  }
+
+  /* One line per group, as the about arc does; e2e/stack-story.spec.ts fails if one is missing. */
+  :is(
+    .stack-story[data-beat='0'] .stack-story-scene[data-group='0'],
+    .stack-story[data-beat='1'] .stack-story-scene[data-group='1'],
+    .stack-story[data-beat='2'] .stack-story-scene[data-group='2'],
+    .stack-story[data-beat='3'] .stack-story-scene[data-group='3'],
+    .stack-story[data-beat='4'] .stack-story-scene[data-group='4'],
+    .stack-story[data-beat='5'] .stack-story-scene[data-group='5']
+  ) {
+    visibility: visible;
+  }
+
+  .stack-story-scene .stack-scene {
+    max-height: calc(100svh - var(--sticky-offset) - 12rem);
+  }
+
+  .stack-scene-in {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* ---- The groups ---- */
+
+  .stack-story-groups {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .stack-story-group {
+    padding: 1.25rem;
+  }
+
+  @media (min-width: 40rem) {
+    .stack-story-group {
+      padding: 1.5rem;
+    }
+  }
+
+  /* The card's own gradient edge marks the group the scene is on. */
+  .stack-story-group.card::after {
+    opacity: calc(var(--is-active) * 0.9);
+  }
+
+  /* A subgroup's label is read, not decoration, so it takes the muted ink rather than the faint. */
+  .stack-story-subgroup-title {
+    color: var(--ink-muted);
+  }
+
+  .stack-story-step-index {
+    color: color-mix(in oklab, var(--signal) calc(var(--is-active) * 100%), var(--ink-faint));
+  }
+
+  /* ---- The index over the pinned panel ---- */
+
+  .stack-story-index {
+    display: none;
+  }
+
+  .stack-story-index-labels {
+    display: grid;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .stack-story-index-labels .tnum {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  .stack-story-index-label {
+    grid-area: 1 / 1;
+    opacity: var(--is-active);
+    transform: translateY(calc(clamp(-1, var(--d), 1) * 0.5rem));
+    transition:
+      opacity 160ms linear,
+      transform 320ms var(--ease-out-soft);
+  }
+
+  .stack-story-index-rail {
+    display: block;
+    height: 2px;
+    margin-top: 0.75rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--line);
+    overflow: hidden;
+  }
+
+  .stack-story-index-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(to right, var(--sky-high), var(--signal-cyan));
+    transform: scaleX(var(--progress, 1));
+    transform-origin: left;
+  }
+
+  /*
+   * A chip still to come waits a little low and small, its text in the muted
+   * ink (which still holds contrast); as its group's scene arrives each one
+   * lands in turn and lights.
+   */
+  .stack-story-chip {
+    position: relative;
+    isolation: isolate;
+    color: color-mix(in oklab, var(--ink-muted) calc(var(--is-pending) * 100%), var(--ink));
+    transform: translateY(calc(var(--is-pending) * 0.5rem)) scale(calc(1 - var(--is-pending) * 0.03));
+    transition: transform 520ms var(--stack-story-pop) calc(var(--k, 0) * 30ms);
+  }
+
+  .stack-story-chip::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--signal-wash);
+    box-shadow:
+      0 0 0 1px var(--signal-bright),
+      0 6px 16px -8px rgb(var(--glow) / 0.55);
+    opacity: var(--is-active);
+    transition: opacity 240ms linear calc(var(--k, 0) * 30ms);
+  }
+
+  /*
+   * In flow, where scroll timelines exist: each chip lands as it enters the
+   * screen. Done by the time
+   * it is wholly on screen, so nothing a reader can see rests part-way. A
+   * flourish — static where scroll timelines are missing.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .stack-story-chip {
+        animation: stack-story-chip-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+
+  @keyframes stack-story-chip-in {
+    from {
+      transform: translateY(0.75rem) scale(0.9);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /*
+   * Pinned: the panel holds beside the groups, below the header, and each
+   * group gets one step of scroll. The column's padding and the steps are the
+   * layout buildStackBeats (lib/stack-beats.ts) computes the beats from, all
+   * in svh, so a step's top crosses the reading line exactly at its beat.
+   */
+  @variant pin {
+    @media (prefers-reduced-motion: no-preference) {
+      .stack-story {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        gap: 3rem;
+        align-items: start;
+        /* The beat for the scene's progress: how many steps have crossed the
+           reading line. buildStackBeats, run backwards. */
+        --stack-at: clamp(
+          0,
+          round(
+            down,
+            (var(--progress, 1) * var(--stack-travel) + var(--stack-line) - var(--stack-lead)) / var(--stack-step),
+            1
+          ),
+          var(--stack-count) - 1
+        );
+      }
+
+      /* The index and the scene travel as one block, centred in the screen below the header. */
+      .stack-story-visual {
+        position: sticky;
+        top: calc(var(--sticky-offset) + 1.5rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1.75rem;
+        height: max(var(--pin-frame-min), calc(100svh - var(--sticky-offset) - 3rem));
+      }
+
+      .stack-story-index {
+        display: block;
+      }
+
+      .stack-story-card-scene {
+        display: none;
+      }
+
+      .stack-story-groups {
+        gap: 0;
+        padding-block: calc(var(--stack-lead) * 1svh) calc((100 - var(--stack-line) + var(--stack-tail)) * 1svh);
+      }
+
+      /* A minimum, not a height: a group that outgrows its step pushes the beats
+         a little late rather than running into the next. */
+      .stack-story-step {
+        min-height: calc(var(--stack-step) * 1svh);
+        /* Inside the minimum, so the beats hold, and the cards keep the same
+           1.25rem apart as in flow when one outgrows its step. */
+        padding-bottom: 1.25rem;
+      }
+
+      .stack-story-chip {
+        animation: none;
+      }
+
+      /*
+       * The scene draws in a piece at a time, in its own order, each time its
+       * group takes the panel. Grown by transform from nothing — text included,
+       * so no label is ever painted part-faded. The others wait, hidden.
+       */
+      .stack-story-scene .stack-scene-in {
+        transform: scale(0);
+      }
+
+      :is(
+          .stack-story[data-beat='0'] .stack-story-scene[data-group='0'],
+          .stack-story[data-beat='1'] .stack-story-scene[data-group='1'],
+          .stack-story[data-beat='2'] .stack-story-scene[data-group='2'],
+          .stack-story[data-beat='3'] .stack-story-scene[data-group='3'],
+          .stack-story[data-beat='4'] .stack-story-scene[data-group='4'],
+          .stack-story[data-beat='5'] .stack-story-scene[data-group='5']
+        )
+        .stack-scene-in {
+        transform: none;
+        transition: transform 460ms var(--ease-out-soft) calc(var(--k, 0) * 70ms);
+      }
+    }
+  }
+}

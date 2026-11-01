@@ -1,15 +1,9 @@
 import { brandSentence, identity } from './facts';
 
 /**
- * The masthead each route opens with, keyed by its path.
- *
- * Four routes were repeating the same component with the same shape of props,
- * which made the header a page concern when it is a layout one. It is declared
- * here once and rendered by the layout; a page composes only what is below it.
- *
- * A route with no entry gets no header. That is deliberate for `/`, which opens
- * with the pool, and for a case study, which has its own header carrying the
- * context and period.
+ * The masthead each route opens with, keyed by path and rendered by the layout.
+ * A route with no entry gets no header: `/` opens with the pool, and a case
+ * study has its own header carrying context and period.
  */
 export type PageHeaderContent = {
   readonly legend: string;

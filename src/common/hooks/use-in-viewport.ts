@@ -1,15 +1,14 @@
 'use client';
 
+// Client: a hook — React state and effects, used only by client components.
+
 import { useEffect, useState, type RefObject } from 'react';
 
 const ROOT_MARGIN = '160px';
 
 /**
- * Whether the referenced element is on screen.
- *
- * Every animation in this repo is gated on this: a loop that runs while nobody
- * is looking is a bug, not a feature. The margin starts work slightly before
- * the element arrives so it is already drawing when it does.
+ * Whether the referenced element is on screen. Every animation is gated on it;
+ * the margin starts work just before the element arrives.
  */
 export function useInViewport(ref: RefObject<Element | null>, rootMargin: string = ROOT_MARGIN): boolean {
   const [inViewport, setInViewport] = useState(false);

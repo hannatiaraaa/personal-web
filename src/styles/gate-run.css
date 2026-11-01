@@ -1,0 +1,359 @@
+/*
+ * The release gate run, on /work/release-gate-from-zero. Owned by the visual
+ * module; every class carries the feature name because this file is global.
+ * A pass is --pass and a piece of known debt is --caution, from the palette.
+ */
+
+@layer components {
+  .gate-run {
+    /* Scroll length of the pinned run: long enough that each beat gets a screen of its own. */
+    --gate-travel: 440svh;
+
+    margin-block: 2.5rem;
+  }
+
+  .gate-run-frame {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    box-shadow: var(--shadow-border);
+  }
+
+  @media (min-width: 40rem) {
+    .gate-run-frame {
+      padding: 1.25rem 1.5rem;
+    }
+  }
+
+  /*
+   * Captions: all five share one grid cell, so the block is as tall as the
+   * longest and nothing moves when the beat changes. The current one is shown;
+   * without a beat written (no script yet, or none at all) the last one is.
+   * Opacity only passes through on the way to 0 or 1 — no caption rests faded.
+   */
+  .gate-run-captions {
+    display: grid;
+  }
+
+  .gate-run-caption {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(0.375rem);
+    transition:
+      opacity 200ms var(--ease-out-soft),
+      transform 260ms var(--ease-out-soft),
+      visibility 0s linear 200ms;
+  }
+
+  .gate-run:not([data-gate-beat]) .gate-run-caption[data-caption='4'],
+  .gate-run[data-gate-beat='0'] .gate-run-caption[data-caption='0'],
+  .gate-run[data-gate-beat='1'] .gate-run-caption[data-caption='1'],
+  .gate-run[data-gate-beat='2'] .gate-run-caption[data-caption='2'],
+  .gate-run[data-gate-beat='3'] .gate-run-caption[data-caption='3'],
+  .gate-run[data-gate-beat='4'] .gate-run-caption[data-caption='4'] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .gate-run-kicker {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: var(--text-micro--letter-spacing);
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .gate-run-headline {
+    margin-top: 0.25rem;
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .gate-run-line {
+    margin-top: 0.25rem;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: var(--ink-muted);
+  }
+
+  /*
+   * The stand-in sizes the box; the live canvas is laid over it and the
+   * stand-in is hidden only once the canvas has painted.
+   */
+  .gate-run-mount {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gate-run-standin {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .gate-run-live {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Set by the canvas on its mount once it has painted: an attribute rather
+     than :has(), so the stand-in and its description leave everywhere. */
+  .gate-run-mount[data-live-painted] > .gate-run-standin {
+    visibility: hidden;
+  }
+
+  .gate-run-stage {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+  }
+
+  /* Plain flow: a fixed height from the width, never more than the screen leaves. */
+  .gate-run-box {
+    position: relative;
+    height: max(14rem, min(clamp(16rem, 82vw, 26rem), calc(100svh - var(--sticky-offset) - 12rem)));
+  }
+
+  .gate-run-still {
+    position: absolute;
+    inset: 0;
+  }
+
+  .gate-run-box[data-painted] > .gate-run-still {
+    display: none;
+  }
+
+  .gate-run-still-svg,
+  .gate-run-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .gate-run-still-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    fill: var(--ink-faint);
+  }
+
+  .gate-run-still-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    fill: var(--surface);
+  }
+
+  /*
+   * The stamp lands with a small overshoot when the release is certified. It
+   * is the default — shown without a beat — and hidden only on earlier beats.
+   */
+  .gate-run-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max-content;
+    max-width: min(22rem, 88%);
+    padding: 0.625rem 1rem 0.75rem;
+    border: 2px solid var(--pass);
+    border-radius: var(--radius-sm);
+    background-color: color-mix(in oklab, var(--surface) 92%, transparent);
+    box-shadow: var(--shadow-lift);
+    text-align: center;
+    transform: translate(-50%, -50%) rotate(-4deg);
+    transition:
+      transform 360ms cubic-bezier(0.2, 1.5, 0.4, 1),
+      opacity 160ms var(--ease-out-soft),
+      visibility 0s linear 0s;
+  }
+
+  .gate-run[data-gate-beat]:not([data-gate-beat='4']) .gate-run-stamp {
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-4deg) scale(1.35);
+    transition:
+      transform 160ms var(--ease-out-soft),
+      opacity 160ms var(--ease-out-soft),
+      visibility 0s linear 160ms;
+  }
+
+  .gate-run-stamp-title {
+    font-family: var(--font-mono);
+    font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1.125rem);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pass);
+  }
+
+  .gate-run-stamp-figures {
+    margin-top: 0.25rem;
+    font-size: var(--text-meta);
+    line-height: 1.45;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .gate-run-stamp-figures > span {
+    display: block;
+  }
+
+  .gate-run-counter-label {
+    display: block;
+    font-size: var(--text-micro);
+    letter-spacing: var(--text-micro--letter-spacing);
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .gate-run-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    min-height: var(--target-min);
+  }
+
+  /* Label on its own line, then the count; on a narrow screen three lines are
+     reserved, so the count growing a digit never reflows the row. */
+  .gate-run-counter {
+    min-height: calc(3 * var(--text-meta--line-height) * 1em);
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: var(--ink);
+  }
+
+  @media (min-width: 30rem) {
+    .gate-run-counter {
+      min-height: 0;
+    }
+  }
+
+  .gate-run-replay {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: 1rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--surface-raised);
+    box-shadow: var(--shadow-border);
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: var(--text-micro--letter-spacing);
+    text-transform: uppercase;
+    color: var(--ink);
+    transition-property: scale, box-shadow;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  @media (hover: hover) {
+    .gate-run-replay:hover {
+      box-shadow: 0 0 0 1px var(--signal);
+    }
+  }
+
+  /* The named debt. Shown from the beat that names it; the default, without a beat, is shown. */
+  .gate-run-debt {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gate-run-debt > li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.5rem 0.125rem 0.1875rem;
+    border: 1px solid color-mix(in oklab, var(--caution) 45%, var(--line));
+    border-radius: var(--radius-pill);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--ink);
+    transition:
+      transform 260ms var(--ease-out-soft),
+      opacity 200ms var(--ease-out-soft),
+      visibility 0s linear 0s;
+    transition-delay: calc(var(--gate-debt-i, 0) * 45ms);
+  }
+
+  .gate-run[data-gate-beat='0'] .gate-run-debt > li,
+  .gate-run[data-gate-beat='1'] .gate-run-debt > li {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(0.25rem) scale(0.96);
+    transition:
+      transform 160ms var(--ease-out-soft),
+      opacity 160ms var(--ease-out-soft),
+      visibility 0s linear 160ms;
+  }
+
+  .gate-run-debt-tag {
+    display: inline-grid;
+    place-items: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--caution);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--surface);
+  }
+
+  /*
+   * Pinned: the frame holds below the header while the figure's tall box
+   * scrolls past it, and the canvas takes whatever height the frame leaves.
+   * Never under reduced motion — there the run rests finished in plain flow.
+   */
+  @variant pin {
+    @media (prefers-reduced-motion: no-preference) {
+      .gate-run {
+        height: var(--gate-travel);
+      }
+
+      .gate-run-frame {
+        position: sticky;
+        top: calc(var(--sticky-offset) + 1rem);
+        height: max(var(--pin-frame-min), min(calc(100svh - var(--sticky-offset) - 2rem), 52rem));
+      }
+
+      .gate-run-mount {
+        flex: 1;
+        min-height: 0;
+      }
+
+      .gate-run-box {
+        flex: 1;
+        min-height: 0;
+        height: auto;
+      }
+
+      /* Scroll drives the run here; the replay control is for plain flow. */
+      .gate-run-control {
+        display: none;
+      }
+    }
+  }
+}

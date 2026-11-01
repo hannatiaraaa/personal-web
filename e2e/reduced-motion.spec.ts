@@ -1,13 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Reduced motion is the path that broke: both figures drew one frame
- * synchronously, then ResizeObserver's initial callback resized the canvas —
- * which clears it — and nothing repainted. A visitor who asks for less motion
- * got a blank figure and a populated legend.
- *
- * Asserting "the canvas is in the viewport" never caught it. These assert that
- * something was actually painted.
+ * Under reduced motion each figure draws once, and ResizeObserver's initial
+ * resize clears the canvas, so a missing repaint leaves it blank beside a full
+ * legend. "In the viewport" cannot catch that; these assert actual paint.
  */
 test.use({ reducedMotion: 'reduce' });
 
@@ -54,6 +50,6 @@ test('the hero says it is still, and a click is the only motion offered', async 
   const canvas = page.locator('canvas').first();
   await expect(canvas).toBeInViewport();
 
-  const body = await page.locator('body').innerText();
-  expect(body).toContain('still — touch to ripple');
+  // The caption follows the preference once the hero has read it; wait for that, not for the first paint.
+  await expect(page.locator('body')).toContainText('still — touch to ripple');
 });

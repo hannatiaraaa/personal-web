@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { MoonIcon, SunIcon } from './icons';
+// Client because the toggle writes the theme to the document and storage.
 
-type Theme = 'light' | 'dark';
+import { useTheme } from '@/common/hooks/use-theme';
+import { THEME_STORAGE_KEY } from '@/common/lib/theme';
+import { MoonIcon, SunIcon } from './icons';
 
 /** Runs before paint, so the page never renders in the wrong theme first. */
 export const themeInitScript = `
 (function () {
   try {
-    var stored = localStorage.getItem('theme');
+    var stored = localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});
     if (stored === 'light' || stored === 'dark') {
       document.documentElement.dataset.theme = stored;
     }
@@ -17,29 +18,17 @@ export const themeInitScript = `
 })();
 `;
 
-function resolveTheme(): Theme {
-  const stored = document.documentElement.dataset.theme;
-  if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+/**
+ * Both icons are always rendered, and CSS decides which one shows from the
+ * theme in effect (`.theme-toggle-icon` in globals.css) — so the right icon is
+ * there before hydration, and a switch cross-fades them instead of swapping.
+ */
+type Props = {
+  className?: string;
+};
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
-
-  useEffect(() => {
-    setTheme(resolveTheme());
-  }, []);
-
-  function toggle() {
-    const next: Theme = resolveTheme() === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem('theme', next);
-    } catch {
-      // Private browsing. The choice holds for this page view and is not persisted.
-    }
-    setTheme(next);
-  }
+export function ThemeToggle({ className }: Props) {
+  const { theme, toggle } = useTheme();
 
   // Until the effect has run the rendered theme is unknown, so the control
   // renders without a state claim rather than announcing a wrong one.
@@ -51,9 +40,15 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={label}
       title={label}
-      className='border-line text-ink-muted hover:border-line-strong hover:text-ink flex h-9 w-9 items-center justify-center rounded-md border text-[1.05rem] transition-colors'
+      className={`icon-btn ${className ?? ''}`}
     >
-      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+      <span
+        aria-hidden='true'
+        className='theme-toggle-icons'
+      >
+        <MoonIcon className='theme-toggle-icon theme-toggle-moon' />
+        <SunIcon className='theme-toggle-icon theme-toggle-sun' />
+      </span>
     </button>
   );
 }

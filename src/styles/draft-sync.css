@@ -1,0 +1,274 @@
+/*
+ * The offline sync simulator on the draft-ownership case study. Owned by the
+ * visual module; every class carries `draft-sync`, because all of this is global.
+ * A stale draft and a reverted record are --caution, from the palette.
+ */
+
+@layer components {
+  .draft-sync {
+    --draft-sync-gap: 1.25rem;
+    --draft-sync-travel: 280svh;
+    /* The outcome lands as the message reaches the server: about where the
+       packet's flight arrives. */
+    --draft-sync-outcome-delay: 700ms;
+    --draft-sync-jolt-duration: 520ms;
+
+    margin-top: 2.5rem;
+  }
+
+  /* Without JavaScript the simulator can never run: show the static diagram. */
+  .draft-sync-nojs {
+    display: none;
+  }
+
+  @media (scripting: none) {
+    .draft-sync-js {
+      display: none;
+    }
+
+    .draft-sync-nojs {
+      display: block;
+    }
+  }
+
+  /*
+   * The frame: one column below `pin`, in flow, the run played on a clock.
+   * The outcome slot keeps a minimum height so the log does not jump as a
+   * caption becomes a headline. Concentric with the replay button in its
+   * corner: its radius plus the padding between them.
+   */
+  .draft-sync-frame {
+    --frame-pad: 0.875rem;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding: var(--frame-pad);
+    border-radius: calc(var(--radius-sm) + var(--frame-pad));
+    background-color: var(--surface);
+    box-shadow: var(--shadow-border), var(--shadow-float);
+  }
+
+  @media (min-width: 40rem) {
+    .draft-sync-frame {
+      --frame-pad: 1.25rem;
+
+      padding-inline: 1.5rem;
+    }
+  }
+
+  .draft-sync-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .draft-sync-controls {
+    display: flex;
+    flex: 1 1 20rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  /* The track itself is `.segmented` (globals.css); here only its share of the row. */
+  .draft-sync-toggle {
+    flex: 1 1 16rem;
+    max-width: 24rem;
+  }
+
+  .draft-sync-replay {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: var(--target-min);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-meta);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--ink);
+    box-shadow: var(--shadow-border);
+    transition-property: background-color, color, box-shadow, scale;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--ease-out-soft);
+  }
+
+  @media (hover: hover) {
+    .draft-sync-replay:hover:enabled:not([aria-disabled='true']) {
+      background-color: var(--surface-sunk);
+      box-shadow: 0 0 0 1px var(--signal);
+    }
+  }
+
+  .draft-sync-replay:is(:disabled, [aria-disabled='true']) {
+    cursor: default;
+  }
+
+  /* In flow the drawing always fits the band under the sticky bars, so the
+     run it plays by itself is never watched with its top cut off. */
+  .draft-sync-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: min(62svh, calc(100svh - var(--sticky-offset) - 2 * var(--draft-sync-gap)));
+  }
+
+  .draft-sync-outcome {
+    min-height: 8.5rem;
+  }
+
+  @media (min-width: 40rem) {
+    .draft-sync-outcome {
+      min-height: 6.5rem;
+    }
+  }
+
+  .draft-sync-caption {
+    margin-top: 0.375rem;
+    font-size: var(--text-lead);
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .draft-sync-headline {
+    margin-top: 0.25rem;
+    font-size: var(--text-h2);
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--signal);
+  }
+
+  .draft-sync-headline[data-outcome='reverted'] {
+    color: var(--caution);
+  }
+
+  .draft-sync-note {
+    margin-top: 0.375rem;
+    font-size: var(--text-meta);
+    color: var(--ink-muted);
+  }
+
+  /* The log is the drawing told in text, so it is always all there. */
+  .draft-sync-log-list {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+  }
+
+  .draft-sync-log-item {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    gap: 0.625rem;
+    font-size: var(--text-meta);
+    line-height: 1.45;
+    color: var(--ink-faint);
+  }
+
+  .draft-sync-log-item[data-state='past'] {
+    color: var(--ink-muted);
+  }
+
+  .draft-sync-log-item[data-state='current'] {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .draft-sync-log-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--text-micro);
+  }
+
+  .draft-sync-log-item[data-state='past'] .draft-sync-log-index {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .draft-sync-log-item[data-state='current'] .draft-sync-log-index {
+    border-color: var(--signal);
+    background-color: var(--signal-wash);
+    color: var(--signal);
+  }
+
+  .draft-sync-log-item[data-state='current'][data-outcome='reverted'] .draft-sync-log-index {
+    border-color: var(--caution);
+    background-color: var(--caution-wash);
+    color: var(--caution);
+  }
+
+  /*
+   * Pinned: a tall scene with the frame held under the header, the drawing
+   * beside its log, sized to the band so it always fits. Each step gets its
+   * stretch of scroll. Under reduced motion the scene is its final state, so
+   * there is nothing to scroll through.
+   */
+  @variant pin {
+    .draft-sync-scene {
+      height: var(--draft-sync-travel);
+    }
+
+    /* Pinned, the scroll plays the run, so there is no run of its own to skip. */
+    .draft-sync-skip {
+      display: none;
+    }
+
+    .draft-sync-frame {
+      position: sticky;
+      top: calc(var(--sticky-offset) + var(--draft-sync-gap));
+      height: max(var(--pin-frame-min), min(calc(100svh - var(--sticky-offset) - 2 * var(--draft-sync-gap)), 46rem));
+      grid-template-columns: minmax(0, 1fr) 13rem;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        'bar bar'
+        'stage log'
+        'outcome log';
+      column-gap: 1.5rem;
+    }
+
+    .draft-sync-bar {
+      grid-area: bar;
+    }
+
+    .draft-sync-stage {
+      grid-area: stage;
+      min-height: 0;
+    }
+
+    .draft-sync-svg {
+      height: 100%;
+      max-height: none;
+    }
+
+    .draft-sync-outcome {
+      grid-area: outcome;
+      min-height: 7rem;
+    }
+
+    .draft-sync-log {
+      grid-area: log;
+      min-height: 0;
+      overflow-y: auto;
+      padding-inline-start: 1.25rem;
+      border-inline-start: 1px solid var(--line);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .draft-sync-scene {
+        height: auto;
+      }
+
+      .draft-sync-frame {
+        position: static;
+      }
+    }
+  }
+}

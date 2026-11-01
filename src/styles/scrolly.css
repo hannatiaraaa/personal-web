@@ -1,0 +1,242 @@
+/*
+ * Scroll stories: the shared stage, the counting figure and the reading rail.
+ * Each area's own visuals live in its scrolly-<area>.css beside this file.
+ */
+
+@layer components {
+  /*
+   * Stage. Below `pin` it is one column, visual above steps, nothing sticky —
+   * the story reads as plain content. At `pin` the visual holds beside the
+   * steps, below the site header, never taller than the viewport left over;
+   * each step gets a scroll beat of its own so the visual has time to change.
+   */
+  .scrolly-stage {
+    --stage-gap: 1.5rem;
+    --stage-visual-max: 40rem;
+    --stage-step-min: 60svh;
+    --stage-tail: 20svh;
+
+    /* A bare grid's implicit track is `auto`, which grows to the widest
+       child's min-content — a row of controls would push the page sideways
+       on a 320px screen. minmax(0, 1fr) holds the column to the container. */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .scrolly-steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  @variant pin {
+    .scrolly-stage {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .scrolly-visual {
+      position: sticky;
+      top: calc(var(--sticky-offset) + var(--stage-gap));
+      height: max(
+        var(--pin-frame-min),
+        min(calc(100svh - var(--sticky-offset) - 2 * var(--stage-gap)), var(--stage-visual-max))
+      );
+    }
+
+    .scrolly-stage[data-visual-side='end'] > .scrolly-visual {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .scrolly-stage[data-visual-side='end'] > .scrolly-steps {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .scrolly-steps {
+      gap: 0;
+      padding-block-end: var(--stage-tail);
+    }
+
+    .scrolly-step {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: var(--stage-step-min);
+    }
+
+    /*
+     * Reduced motion: nothing pins and no step is stretched. The media query
+     * covers first paint; the attribute, set once the stage reads the preference,
+     * is what visuals key their final state off.
+     */
+    .scrolly-stage[data-stage-state='final'] > .scrolly-visual {
+      position: static;
+      height: auto;
+    }
+
+    .scrolly-stage[data-stage-state='final'] .scrolly-step {
+      min-height: 0;
+    }
+
+    .scrolly-stage[data-stage-state='final'] > .scrolly-steps {
+      gap: 2rem;
+      padding-block-end: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scrolly-visual {
+        position: static;
+        height: auto;
+      }
+
+      .scrolly-step {
+        min-height: 0;
+      }
+
+      .scrolly-steps {
+        gap: 2rem;
+        padding-block-end: 0;
+      }
+    }
+  }
+}
+
+/*
+ * Counting figure. The integer is registered so it can animate as a number
+ * rather than flip between two strings; a CSS counter prints it.
+ */
+@property --count-n {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@layer components {
+  /* Both layers share one grid cell, so the cell is always as wide as the
+     published value and nothing shifts while the count runs. */
+  .count-up {
+    display: inline-grid;
+    justify-items: start;
+  }
+
+  .count-up > * {
+    grid-area: 1 / 1;
+  }
+
+  .count-up-layer {
+    display: none;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .count-up-layer {
+        display: block;
+        counter-reset: count-n var(--count-n);
+        animation: count-up linear both;
+        animation-timeline: view();
+        /* Done by the time the figure is fully on screen, so a figure the reader
+           can see whole always reads its published value — even at the foot
+           of a page, where the scroll can end before a later range would. */
+        animation-range: entry 0% entry 100%;
+      }
+
+      /* On a clock rather than the view timeline: done before a reader can
+         scroll, so a figure painted above the fold never rests half-counted. */
+      .count-up-layer[data-count-on='load'] {
+        animation-timeline: auto;
+        animation-range: normal;
+        animation-duration: 1.2s;
+        animation-delay: 0.15s;
+        animation-timing-function: var(--ease-out-soft);
+      }
+
+      .count-up-layer::before {
+        content: attr(data-prefix) counter(count-n) attr(data-suffix);
+      }
+
+      /* Swapped, never faded: the value stays in the DOM and in the layout,
+         unpainted, while the count shows. No partial opacity is ever reached. */
+      .count-up-value {
+        opacity: 0;
+      }
+    }
+  }
+
+  @keyframes count-up {
+    from {
+      --count-n: 0;
+    }
+    to {
+      --count-n: var(--count-to);
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Reading rail: how far down the page the reader is, as a hairline under the
+   * sticky header. A scroll timeline on the root scroller, scaled on the
+   * compositor; absent where scroll timelines are missing or motion is reduced.
+   * At rest it is scaled to nothing, so a page too short to scroll shows none.
+   */
+  .reading-rail {
+    display: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reading-rail {
+        --rail-h: 2px;
+
+        display: block;
+        position: absolute;
+        inset-inline: 0;
+        bottom: -1px;
+        height: var(--rail-h);
+        background: linear-gradient(to right, var(--sky-high), var(--signal-cyan));
+        transform: scaleX(0);
+        transform-origin: left;
+        pointer-events: none;
+        animation: reading-rail linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+
+  @keyframes reading-rail {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+}
+
+/*
+ * Scroll scenes: progress written by `ScrollScene`, so a scene runs without CSS
+ * view timelines. `--progress` is a registered, inherited number defaulting to
+ * 1, so before hydration, without JavaScript, or without @property (read it as
+ * `var(--progress, 1)`) a reader sees the finished scene.
+ */
+@property --progress {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+@layer components {
+  /*
+   * Under reduced motion the scene is its final state, whatever the script
+   * wrote: the important declaration beats the inline one.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-scene {
+      --progress: 1 !important;
+    }
+  }
+}

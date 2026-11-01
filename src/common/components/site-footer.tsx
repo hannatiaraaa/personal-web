@@ -18,16 +18,16 @@ export function SiteFooter() {
           the role and the country you can employ from.
         </p>
 
-        <ul className='mt-5 flex flex-wrap gap-x-5 gap-y-2'>
+        <ul className='mt-5 flex flex-wrap gap-x-5 gap-y-2 pointer-coarse:gap-y-0'>
           {links.map(({ href, label, Icon, external }) => (
             <li key={label}>
               <a
                 href={href}
                 {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
-                className='text-meta text-ink-muted hover:text-ink flex items-center gap-2 transition-colors'
+                className='text-meta text-ink-muted hover:text-ink flex items-center gap-2 transition-colors pointer-coarse:min-h-11'
               >
                 <Icon className='text-[1.05rem]' />
-                {label}
+                <span className='link-underline'>{label}</span>
                 {external && <span className='sr-only'>(opens in a new tab)</span>}
               </a>
             </li>
@@ -39,9 +39,7 @@ export function SiteFooter() {
           the case studies are written out here rather than linked to a commit.
         </p>
 
-        {/* No year. The page is statically rendered, so `new Date()` here is
-            build time — the footer would keep claiming last year until someone
-            redeployed, and a stale date is worse than no date. */}
+        {/* No year: the page is static, so `new Date()` would be build time and go stale. */}
         <p className='text-micro text-ink-faint mt-8 font-mono'>
           {identity.location} · {identity.timezone} · Remote since {identity.remoteSince} · © {identity.name}
         </p>

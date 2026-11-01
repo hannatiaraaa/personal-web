@@ -1,0 +1,259 @@
+/*
+ * Approval engine. Every class carries `approval-engine`: this file is global.
+ * Static by design. A rung changes state in one frame: a colour cross-fade would
+ * pass its text through a background it lacks contrast on.
+ */
+
+@layer components {
+  .approval-engine {
+    margin-top: 2.5rem;
+  }
+
+  .approval-engine-board {
+    container-type: inline-size;
+    display: grid;
+    gap: 1rem;
+    /* Concentric with the customer panels inside it. */
+    padding: 1rem;
+    border-radius: calc(var(--radius-sm) + 1rem);
+    background-color: var(--surface);
+    box-shadow: var(--shadow-border), var(--shadow-float);
+  }
+
+  .approval-engine-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  /* Controls: the engine first, the request beneath it. */
+  .approval-engine-controls {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .approval-engine-amount {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 0.5rem;
+  }
+
+  .approval-engine-amount-name {
+    font-size: var(--text-meta);
+    color: var(--ink);
+  }
+
+  .approval-engine-amount-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    color: var(--ink);
+  }
+
+  /* The whole input is the hit area: 44px tall, so a thumb finds it. */
+  .approval-engine-range {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: var(--target-min);
+    margin: 0;
+    accent-color: var(--signal);
+    cursor: pointer;
+  }
+
+  .approval-engine-switches {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 1.25rem;
+  }
+
+  .approval-engine-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: var(--target-min);
+    font-size: var(--text-meta);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .approval-engine-checkbox {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--signal);
+  }
+
+  .approval-engine-range:disabled,
+  .approval-engine-switch:has(:disabled) {
+    cursor: default;
+  }
+
+  .approval-engine-customers {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  @container (min-width: 34rem) {
+    .approval-engine-customers {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  /* A customer: the ladder top-down, the outcome pinned to the foot so the two sit level. */
+  .approval-engine-customer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--surface-sunk);
+  }
+
+  .approval-engine-customer-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .approval-engine-customer-rule {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    font-weight: 400;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .approval-engine-rungs {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+   * A rung. Status is said in words on every rung — the colour only repeats it.
+   * The connector to the rung above is drawn in the gap between them.
+   */
+  .approval-engine-rung {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    font-size: var(--text-meta);
+    line-height: 1.35;
+  }
+
+  .approval-engine-rung + .approval-engine-rung::before {
+    content: '';
+    position: absolute;
+    inset-block-start: calc(-0.5rem - 1px);
+    inset-inline-start: 1.25rem;
+    width: 2px;
+    height: 0.5rem;
+    background-color: var(--line-strong);
+  }
+
+  .approval-engine-rung-role {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .approval-engine-rung-reason {
+    grid-column: 1;
+    color: var(--ink-muted);
+  }
+
+  .approval-engine-rung-status {
+    grid-row: 1;
+    grid-column: 2;
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  /* On the path: lit. */
+  .approval-engine-rung[data-status='required'] {
+    border-color: var(--signal);
+    background-color: var(--signal-wash);
+  }
+
+  .approval-engine-rung[data-status='required'] .approval-engine-rung-status {
+    font-weight: 700;
+    color: var(--signal);
+  }
+
+  /* Configured but not needed for this request: drawn, quietly. */
+  .approval-engine-rung[data-status='skipped'] {
+    border-style: dashed;
+    background-color: transparent;
+  }
+
+  /* Needed and not asked, or needed and overridden: the exception, said out loud. */
+  .approval-engine-rung[data-status='missed'],
+  .approval-engine-rung[data-status='bypassed'] {
+    border-color: var(--caution);
+    border-style: dashed;
+    background-color: var(--caution-wash);
+  }
+
+  .approval-engine-rung[data-status='missed'] .approval-engine-rung-status,
+  .approval-engine-rung[data-status='bypassed'] .approval-engine-rung-status {
+    font-weight: 700;
+    color: var(--caution);
+  }
+
+  .approval-engine-rung[data-status='bypassed'] .approval-engine-rung-role {
+    text-decoration: line-through;
+    text-decoration-color: var(--caution);
+  }
+
+  .approval-engine-outcome {
+    margin-block-start: auto;
+    padding: 0.625rem 0.75rem;
+    border-inline-start: 3px solid var(--pass);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    font-size: var(--text-meta);
+    line-height: 1.4;
+  }
+
+  .approval-engine-outcome[data-outcome='wrong'],
+  .approval-engine-outcome[data-outcome='bypassed'],
+  .approval-engine-outcome[data-outcome='no-authority'] {
+    border-inline-start-color: var(--caution);
+  }
+
+  .approval-engine-outcome-headline {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .approval-engine-outcome[data-outcome='wrong'] .approval-engine-outcome-headline {
+    color: var(--caution);
+  }
+
+  .approval-engine-outcome-detail {
+    margin-block-start: 0.125rem;
+    color: var(--ink-muted);
+  }
+
+  .approval-engine-note {
+    font-size: var(--text-meta);
+    color: var(--ink-muted);
+  }
+}

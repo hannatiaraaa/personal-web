@@ -1,27 +1,21 @@
 /**
- * Single source of truth for every claim this site publishes.
+ * Single source of truth for every claim this site publishes. Nothing outside
+ * this file states a figure.
  *
  * Authority chain, highest first:
- *   1. cv_hanna/2026/Cover_Letter_Master.md  — states it carries the current
- *      numbers and wins any conflict.
+ *   1. cv_hanna/2026/Cover_Letter_Master.md  — current numbers; wins any conflict.
  *   2. cv_hanna/2026/LinkedIn_Profile_Pack.md — current public phrasings.
- *   3. cv_hanna/2026/CV_Hanna_2026_Master.md  — the older exact figures. Loses.
+ *   3. cv_hanna/2026/CV_Hanna_2026_Master.md  — older exact figures. Loses.
  *
- * The current set is the rounded one. The exact set (539 PRs, 1,144 cases,
- * 2,760 decisions, 395 reviews, "three fleets") is not wrong, it is older —
- * which is exactly the kind of thing that gets pasted back in from an old
- * draft, so e2e/content.spec.ts asserts it never reaches the built output.
- *
- * Nothing outside this file states a figure. If a number needs changing it
- * changes here once, and every page that quotes it follows.
+ * The current set is the rounded one. The older exact set is easy to paste back
+ * from a draft, so e2e/content.spec.ts asserts it never reaches the built output.
  */
 
 export const identity = {
   name: 'Hanna Tiara Andarlia',
   /**
-   * Brand line, not role. Brand_and_Headlines.md r14 (9 Sep 2026): the public
-   * surface never self-applies "Senior" — a self-awarded adjective is
-   * discounted on sight. Seniority is carried by the evidence below instead.
+   * Brand line, not role. The public surface never self-applies "Senior"
+   * (Brand_and_Headlines.md r14); the evidence below carries seniority.
    */
   brandLine: 'Full-Stack Engineer',
   stackLine: 'TypeScript · React Native/Expo · Next.js · NestJS',
@@ -104,6 +98,11 @@ export const figures = {
   designQuestionsResolved: '50+',
   workstreamsOwned: '5+',
   sapDeliveryWeeks: '2 weeks',
+  approvalFirstBuildWeeks: '6 weeks',
+  singleHandedAppScope: 'three-month',
+  revampComplexity: 'roughly half',
+  researchPapers: 'three',
+  awsCertifications: 'three',
   repositories: 'multiple',
   publications: 'two',
 } as const;
@@ -134,11 +133,8 @@ export const publications = [
  * Exported so the e2e suite can assert none of them reach the built output.
  */
 export const supersededFigures: readonly string[] = [
-  // Only literals from the previous generation of figures belong here. An entry
-  // that is not an old figure catches nothing and costs an assertion; an entry
-  // that matches a *current* figure fails the build on a true statement — which
-  // is what '130+ guarded' did, because 130+ is the live route count and 138 was
-  // the old one.
+  // Only old literals belong here. An entry matching a current figure fails the
+  // build on a true statement (130+ is the live route count; 138 was the old one).
   '539',
   '1,144',
   '1144',
