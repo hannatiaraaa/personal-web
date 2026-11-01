@@ -6,7 +6,7 @@ export function CaseStudyHeader({ study }: { study: CaseStudy }) {
     <header>
       <Link
         href='/work'
-        className='text-micro text-ink-muted hover:text-signal font-mono uppercase transition-colors'
+        className='text-micro text-ink-muted hover:text-signal inline-flex items-center font-mono uppercase transition-colors pointer-coarse:min-h-11'
       >
         ← All work
       </Link>

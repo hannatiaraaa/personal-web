@@ -1,19 +1,10 @@
 /**
- * The hero surface: one pool of points, three layers of motion.
+ * The hero surface: one pool of points on a Vogel spiral, moved by a
+ * Fisher–Kolmogorov front, ocean swell, and ripples where a visitor touches it.
  *
- * The lattice is a Vogel spiral — every point at `r = c·√n, θ = n·φ` where φ is
- * the golden angle. Nothing else is placed, yet the visible spiral arms come in
- * consecutive Fibonacci counts; the structure emerges from one line of maths
- * instead of being drawn. Over it move a Fisher–Kolmogorov front (the thesis),
- * ocean swell (the work), and ripples where a visitor touches it.
- *
- * Everything positional is computed here once, on the CPU, and uploaded as
- * static attributes. The tuning constants are exported as data so that
- * `flow-field-shaders.ts` can generate the GLSL from the same numbers these
- * functions are tested against — the duplication is then the shape of each
- * formula, not its values.
- *
- * Pure: no three.js, no DOM, no React.
+ * Positions are computed once on the CPU. The tuning constants are exported so
+ * `flow-field-shaders.ts` generates its GLSL from the same numbers these
+ * functions are tested against. Pure: no three.js, no DOM, no React.
  */
 
 /** The golden angle, 2π(1 − 1/φ) ≈ 137.5°. */
@@ -136,14 +127,9 @@ export function frontEnvelope(phase: number): number {
 }
 
 /**
- * The moving edge of a harvested Fisher–Kolmogorov invasion.
- *
- * The solution profile is the sigmoid `σ = 1/(1 + exp(k(r − reach)))`; what
- * travels is its gradient, and `4σ(1−σ)` is that gradient normalised to peak at
- * 1 exactly where the front is. The harvest term scales it down: a harvested
- * population invades with a weaker front, and a harvest at carrying capacity
- * leaves nothing to invade at all — the thesis result, visible as a dimmer
- * ring.
+ * The moving edge of a harvested Fisher–Kolmogorov invasion: `4σ(1−σ)`, the
+ * sigmoid profile's gradient normalised to peak at the front, scaled down by the
+ * harvest — a harvested population invades with a weaker front.
  */
 export function frontPulse(
   radius: number,

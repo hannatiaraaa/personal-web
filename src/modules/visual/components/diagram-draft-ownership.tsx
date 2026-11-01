@@ -83,91 +83,99 @@ export function DraftOwnershipDiagram() {
       </text>
 
       {/* both devices read revision 1 */}
-      <line
-        x1={readAt}
-        y1={laneA}
-        x2={readAt}
-        y2={laneB}
-        stroke='var(--line-strong)'
-        strokeWidth='1'
-      />
-      {[laneA, laneB].map((y) => (
-        <circle
-          key={y}
-          cx={readAt}
-          cy={y}
-          r='4.5'
-          fill='var(--ink-muted)'
+      <g data-diagram-stage='1'>
+        <line
+          x1={readAt}
+          y1={laneA}
+          x2={readAt}
+          y2={laneB}
+          stroke='var(--line-strong)'
+          strokeWidth='1'
         />
-      ))}
-      <text
-        x={readAt}
-        y={laneB + 26}
-        textAnchor='middle'
-        className={diagramLabel}
-        fill='var(--ink-muted)'
-      >
-        both read rev 1
-      </text>
+        {[laneA, laneB].map((y) => (
+          <circle
+            key={y}
+            cx={readAt}
+            cy={y}
+            r='4.5'
+            fill='var(--ink-muted)'
+          />
+        ))}
+        <text
+          x={readAt}
+          y={laneB + 26}
+          textAnchor='middle'
+          className={diagramLabel}
+          fill='var(--ink-muted)'
+        >
+          both read rev 1
+        </text>
+      </g>
 
       {/* the online device moves the record on */}
-      <circle
-        cx={writeAt}
-        cy={laneB}
-        r='4.5'
-        fill='var(--ink)'
-      />
-      <text
-        x={writeAt}
-        y={laneB + 26}
-        textAnchor='middle'
-        className={diagramLabel}
-        fill='var(--ink)'
-      >
-        writes rev 2
-      </text>
+      <g data-diagram-stage='2'>
+        <circle
+          cx={writeAt}
+          cy={laneB}
+          r='4.5'
+          fill='var(--ink)'
+        />
+        <text
+          x={writeAt}
+          y={laneB + 26}
+          textAnchor='middle'
+          className={diagramLabel}
+          fill='var(--ink)'
+        >
+          writes rev 2
+        </text>
+      </g>
 
       {/* the returning device still holds a revision 1 draft */}
-      <circle
-        cx={returnAt}
-        cy={laneA}
-        r='4.5'
-        fill='var(--signal)'
-      />
-      <text
-        x={returnAt}
-        y={laneA - 16}
-        textAnchor='middle'
-        className={diagramLabel}
-        fill='var(--signal)'
-      >
-        returns holding a rev 1 draft
-      </text>
-      <path
-        d={`M${returnAt} ${laneA + 8} L${returnAt} ${laneB - 10}`}
-        stroke='var(--signal)'
-        strokeWidth='1.4'
-        strokeDasharray='4 4'
-      />
-
-      {/* what the guard now does with it */}
-      <g transform={`translate(${returnAt - 7}, ${laneB - 7})`}>
+      <g data-diagram-stage='3'>
+        <circle
+          cx={returnAt}
+          cy={laneA}
+          r='4.5'
+          fill='var(--signal)'
+        />
+        <text
+          x={returnAt}
+          y={laneA - 16}
+          textAnchor='middle'
+          className={diagramLabel}
+          fill='var(--signal)'
+        >
+          returns holding a rev 1 draft
+        </text>
         <path
-          d='M0 0l14 14M14 0L0 14'
+          d={`M${returnAt} ${laneA + 8} L${returnAt} ${laneB - 10}`}
           stroke='var(--signal)'
-          strokeWidth='1.8'
-          strokeLinecap='round'
+          strokeWidth='1.4'
+          strokeDasharray='4 4'
         />
       </g>
-      <text
-        x={returnAt + 96}
-        y={laneB + 4}
-        textAnchor='middle'
-        className={diagramLabel}
-        fill='var(--signal)'
-      >
-        late-draft guard rejects
-      </text>
+
+      {/* what the guard now does with it */}
+      <g data-diagram-stage='4'>
+        <g transform={`translate(${returnAt - 7}, ${laneB - 7})`}>
+          <path
+            d='M0 0l14 14M14 0L0 14'
+            stroke='var(--signal)'
+            strokeWidth='1.8'
+            strokeLinecap='round'
+          />
+        </g>
+        <text
+          x={returnAt + 96}
+          y={laneB + 4}
+          textAnchor='middle'
+          className={diagramLabel}
+          fill='var(--signal)'
+        >
+          late-draft guard rejects
+        </text>
+      </g>
     </DiagramFrame>
   );
 }

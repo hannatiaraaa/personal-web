@@ -1,14 +1,9 @@
 /**
- * Agent-based contagion with a recovery process — the model from one of my two
- * published papers, as pure functions.
+ * Agent-based contagion with a recovery process, from one of my published
+ * papers, as pure functions.
  *
- * No React and no DOM here on purpose. The model is the part with rules, so it
- * is the part that gets unit tests; the canvas is only a way of looking at it.
- *
- * The population is held in parallel typed arrays and stepped in place. That is
- * a deliberate exception to the immutability default: this runs every animation
- * frame, and allocating five arrays per frame is the one thing that would make
- * it visible in a profile.
+ * The population lives in parallel typed arrays stepped in place — a deliberate
+ * exception to the immutability default, because this runs every frame.
  */
 
 export const State = {
@@ -42,14 +37,9 @@ export type ModelParams = {
   /** Frames before a recovering agent becomes recovered. */
   readonly recoveredAfter: number;
   /**
-   * Per-frame probability that a recovered agent relapses.
-   *
-   * A relapse returns the agent to **affected**, not to susceptible. That is
-   * what relapse means in the recovery process the paper models — someone who
-   * had recovered is affected again — and it is also the term that makes the
-   * system endemic. Sending them back to susceptible instead cannot re-seed
-   * anything, because only an affected agent transmits, so the model would
-   * always burn out and the endemic claim would be false.
+   * Per-frame probability that a recovered agent relapses — back to
+   * **affected**, not susceptible. Only an affected agent transmits, so relapse
+   * to susceptible could never re-seed and the model would always burn out.
    */
   readonly relapse: number;
   /** Step length per frame, in normalised units. */
@@ -176,9 +166,7 @@ function transmit(population: Population, params: ModelParams, random: () => num
   const link = params.linkRadius * params.linkRadius;
   const edges: Edges = [];
 
-  // Widest of the two, so neither gate is silently capped by the other. They
-  // are independent settings and a link radius above the contact radius is a
-  // plausible tuning choice.
+  // Widest of the two, so neither independent setting is silently capped by the other.
   const reach = Math.max(contact, link);
 
   for (let i = 0; i < size; i += 1) {

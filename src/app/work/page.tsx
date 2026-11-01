@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import { CaseStudyGrid, EarlierWork } from '@/modules/work';
+// From the view file, not the barrel: the barrel also re-exports the client part
+// indicator, and a route ships every client component its imports reach.
+import { CaseStudyGrid } from '@/modules/work/views/case-study-grid';
 
 export const metadata: Metadata = {
   title: 'Work',
@@ -8,10 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function WorkPage() {
-  return (
-    <div className='space-y-16'>
-      <CaseStudyGrid />
-      <EarlierWork />
-    </div>
-  );
+  return <CaseStudyGrid />;
 }

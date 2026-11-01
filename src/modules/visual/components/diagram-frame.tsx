@@ -1,12 +1,13 @@
 /**
- * Shared frame for mechanism diagrams. Product screenshots cannot be published;
- * the mechanism can be drawn from scratch, and the mechanism is the part worth
- * showing anyway.
+ * Shared frame for mechanism diagrams: product screenshots cannot be published,
+ * and the mechanism is the part worth showing.
  *
- * Colours come from theme tokens so both themes stay legible. The SVG is
- * role="img" with a text description, so a screen reader gets the finding
- * rather than a list of shapes — and the scroll container is focusable, because
- * on a narrow screen the right-hand half is otherwise unreachable by keyboard.
+ * The SVG is `role="img"` with a text description, so a screen reader gets the
+ * finding, not shapes; the scroll container is focusable so a narrow screen's
+ * hidden half is reachable by keyboard. Groups marked `data-diagram-stage` (1–4)
+ * build in on a view timeline set on the scroll container (`scrolly-work.css`),
+ * whose subject is only the drawing. Without view timelines, or under reduced
+ * motion, the diagram is whole.
  */
 
 export const diagramLabel = 'font-mono text-[11px]';
@@ -20,21 +21,23 @@ type Props = {
 
 export function DiagramFrame({ title, description, viewBox, children }: Props) {
   return (
-    <figure
-      tabIndex={0}
-      role='group'
-      aria-label={`Diagram: ${title}`}
-      className='border-line bg-surface my-8 overflow-x-auto rounded-lg border p-4 sm:p-6'
-    >
-      <svg
-        viewBox={viewBox}
-        role='img'
-        aria-label={description}
-        className='h-auto w-full min-w-[38rem]'
-        fill='none'
+    <figure className='border-line bg-surface my-8 rounded-lg border p-4 sm:p-6'>
+      <div
+        tabIndex={0}
+        role='group'
+        aria-label={`Diagram: ${title}`}
+        className='diagram-scroll overflow-x-auto'
       >
-        {children}
-      </svg>
+        <svg
+          viewBox={viewBox}
+          role='img'
+          aria-label={description}
+          className='h-auto w-full min-w-[38rem]'
+          fill='none'
+        >
+          {children}
+        </svg>
+      </div>
       <figcaption className='text-meta text-ink-muted mt-4'>{title}</figcaption>
     </figure>
   );

@@ -5,10 +5,11 @@ import { CaseStudyPart } from '@/modules/work/components/case-study-part';
 /** The figures, the thing the figures cannot say, and what it was built with. */
 export function Evidence({ study }: { study: CaseStudy }) {
   return (
-    <CaseStudyPart legend='Evidence'>
+    <CaseStudyPart part='evidence'>
       <FigureRow
         figures={study.evidence}
         variant='inline'
+        animate
       />
 
       {study.evidenceNote && <p className='mt-6'>{study.evidenceNote}</p>}

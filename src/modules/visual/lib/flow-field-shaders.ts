@@ -1,15 +1,9 @@
 import { FRONT, HARVEST, MAX_RIPPLES, RIPPLE, SWELL_COMPONENTS } from './flow-field';
 
 /**
- * The pool's vertex and fragment shaders, generated from the constants in
- * `flow-field.ts`.
- *
- * GLSL cannot call TypeScript, so the three motion fields exist twice. Building
- * the source from the same objects the unit tests assert against reduces the
- * duplication to the shape of each formula: every number has one home, and a
- * tuning change cannot drift between the tested function and the shader.
- *
- * Pure: returns strings. No three.js, no DOM.
+ * The pool's shaders, generated from the constants in `flow-field.ts` so every
+ * number has one home and a tuning change cannot drift between the tested
+ * function and the GLSL. Pure: returns strings.
  */
 
 /** GLSL has no integer-to-float coercion, so every literal needs a decimal. */
@@ -38,6 +32,16 @@ const SURFACE = {
   depthRange: 12,
   /** Width of the causal shoulder ahead of a ripple's own travel. */
   rippleShoulder: 0.6,
+  /**
+   * Scroll disturbance: a short cross-hatched chop over the swell, at full
+   * height only at the peak of the scroll response, and the energy it adds to
+   * the colour ramp.
+   */
+  chopAmplitude: 0.18,
+  chopKx: 2.6,
+  chopKz: 1.9,
+  chopOmega: 2.3,
+  chopWeight: 1.4,
   /** Radius of the soft dot, in point-coordinate space. */
   dotEdge: 0.5,
   dotCore: 0.06,
@@ -60,6 +64,9 @@ export function createVertexShader(): string {
   uniform float uSize;
   uniform float uPixelRatio;
   uniform vec4 uRipples[${MAX_RIPPLES}];
+  // Scroll response, from flow-field-scroll: 1 and 0 at rest.
+  uniform float uSwellGain;
+  uniform float uDisturbance;
 
   varying float vIntensity;
   varying float vRadius;
@@ -108,8 +115,15 @@ export function createVertexShader(): string {
       ripples += rippleHeight(distance(position.xz, drop.xy), uTime - drop.z);
     }
 
+    // Two crossing sines, so the chop reads as broken water rather than a wave.
+    float chop = uDisturbance * ${glsl(SURFACE.chopAmplitude)}
+               * sin(${glsl(SURFACE.chopKx)} * position.x + ${glsl(SURFACE.chopKz)} * position.z + ${glsl(SURFACE.chopOmega)} * uTime)
+               * sin(${glsl(SURFACE.chopKz)} * position.x - ${glsl(SURFACE.chopKx)} * position.z - ${glsl(SURFACE.chopOmega)} * uTime);
+
     float rim = 1.0 - smoothstep(${glsl(SURFACE.rimEaseFrom)}, 1.0, aRadius) * ${glsl(SURFACE.rimEaseAmount)};
-    float height = swell * ${glsl(SURFACE.swellScale)} * rim + front * ${glsl(SURFACE.frontScale)} + ripples;
+    float height = (swell * ${glsl(SURFACE.swellScale)} * uSwellGain + chop) * rim
+                 + front * ${glsl(SURFACE.frontScale)}
+                 + ripples;
 
     vec4 viewPosition = modelViewMatrix * vec4(position.x, height, position.z, 1.0);
     gl_Position = projectionMatrix * viewPosition;
@@ -119,7 +133,8 @@ export function createVertexShader(): string {
       ${glsl(SURFACE.baseIntensity)}
         + ${glsl(SURFACE.heightWeight)} * heightNorm
         + ${glsl(SURFACE.frontWeight)} * front
-        + ${glsl(SURFACE.rippleWeight)} * abs(ripples),
+        + ${glsl(SURFACE.rippleWeight)} * abs(ripples)
+        + ${glsl(SURFACE.chopWeight)} * abs(chop),
       0.0,
       1.0
     );

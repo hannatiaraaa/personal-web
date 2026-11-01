@@ -12,7 +12,7 @@ export function NextCaseStudy({ study }: { study: CaseStudy }) {
         <p className='legend'>Next</p>
         <p className='text-h3 text-ink mt-2.5 flex items-baseline justify-between gap-4 font-semibold tracking-[-0.015em]'>
           <span>{study.title}</span>
-          <ArrowIcon className='text-signal shrink-0 transition-transform duration-300 group-hover:translate-x-1' />
+          <ArrowIcon className='text-signal shrink-0 transition-transform duration-200 group-hover:translate-x-1' />
         </p>
       </Link>
     </nav>
