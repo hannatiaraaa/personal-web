@@ -28,7 +28,7 @@ That shapes three rules.
 
 ### Entry and exit criteria
 
-**Entry** — `bun install` succeeds; `bun run build` produces a production build; Chromium installed.
+**Entry** — `bun install` succeeds; `bun run build` produces a production build; Chromium, Firefox and WebKit installed (`bunx playwright install chromium firefox webkit`).
 
 **Exit** — `bun run gate` green end to end, all three manual checks recorded, and no untriaged defect at severity high.
 
@@ -40,11 +40,11 @@ That shapes three rules.
 | ----- | --------------------------------------------------------------------------------------------------------------------- |
 | Local | Bun 1.3, Node 24, macOS. `bun run dev` on :3000                                                                       |
 | Test  | Playwright against the **production build** on :3210, not the dev server — the thing that ships is the thing asserted |
-| CI    | GitHub Actions, Ubuntu, Chromium only, **no environment variables set**                                               |
+| CI    | GitHub Actions, Ubuntu, the full `bun run gate` in Chromium, Firefox and WebKit, **no environment variables set**     |
 
 CI running with nothing configured is deliberate. It is what makes "builds from a clean clone" an assertion rather than an assumption, and it is what would catch an asset URL composed from an unset variable.
 
-**Known environment gaps**, accepted and recorded: Chromium only (WebKit is the gap that matters — recruiters open links on phones); no real-device testing; no performance budget enforced in CI, only checked by hand at the build output.
+**Known environment gaps**, accepted and recorded: no real-device testing; mobile WebKit (`iPhone 13`) runs only with `E2E_ALL_BROWSERS=1`, since desktop WebKit and the Chromium phone project already cover most of what it would find. The earlier gaps — Chromium only, and a budget checked by hand — are closed: the suite runs in three engines and `scripts/check-budget.ts` is a gate stage.
 
 ---
 
@@ -54,16 +54,17 @@ CI running with nothing configured is deliberate. It is what makes "builds from 
 bun run gate
 ```
 
-Six stages, ordered so the cheapest failure surfaces first:
+Seven stages, ordered so the cheapest failure surfaces first:
 
-| #   | Stage      | Command              | Catches                                   |
-| --- | ---------- | -------------------- | ----------------------------------------- |
-| 1   | Format     | `prettier --check .` | Style drift, before anything compiles     |
-| 2   | Lint       | `eslint .`           | Unused code, React rules, unsafe patterns |
-| 3   | Typecheck  | `tsc --noEmit`       | Type errors, and barrel name collisions   |
-| 4   | Build      | `next build`         | Compilation, route manifest, bundle sizes |
-| 5   | Unit       | `bun test src`       | Every pure rule                           |
-| 6   | End-to-end | `playwright test`    | Everything observable                     |
+| #   | Stage      | Command                       | Catches                                                     |
+| --- | ---------- | ----------------------------- | ----------------------------------------------------------- |
+| 1   | Format     | `prettier --check .`          | Style drift, before anything compiles                       |
+| 2   | Lint       | `eslint .`                    | Unused code, React rules, unsafe patterns                   |
+| 3   | Typecheck  | `tsc --noEmit`                | Type errors, and barrel name collisions                     |
+| 4   | Build      | `next build`                  | Compilation, route manifest, bundle sizes                   |
+| 5   | Budget     | `bun scripts/check-budget.ts` | Shared First Load JS over 110 kB, or a route over it +15 kB |
+| 6   | Unit       | `bun test src`                | Every pure rule                                             |
+| 7   | End-to-end | `playwright test`             | Everything observable, in Chromium, Firefox and WebKit      |
 
 Typecheck sits before build deliberately: `export *` barrels turn a name collision into a build error rather than a lint warning, and stage 3 is where that surfaces cheaply.
 
@@ -71,9 +72,9 @@ Typecheck sits before build deliberately: `export *` barrels turn a name collisi
 
 ## 4. Unit test coverage
 
-58 assertions across 7 files, all colocated beside the module they cover.
+As of `070be73`: 409 tests, all colocated beside the module they cover. The sections below describe the original modules; the scroll-story and interactive logic added since is covered the same way, beside each file in `lib/`.
 
-### `visual/lib/contagion` — 15 tests
+### `visual/lib/contagion`
 
 The agent-based model from the published paper.
 
@@ -94,7 +95,7 @@ The agent-based model from the published paper.
 | Edges are pairs of valid indices                                   | Guards the render contract                    |
 | Reproducible for a given seed                                      | Same figure every visit                       |
 
-### `visual/lib/flow-field` — 13 tests
+### `visual/lib/flow-field`
 
 The hero's three motion fields and the Vogel lattice.
 
@@ -114,23 +115,23 @@ The hero's three motion fields and the Vogel lattice.
 | A ripple cannot appear ahead of its own travel                     |
 | A ripple stays inside its amplitude and fades with age             |
 
-### `visual/lib/pointer-plane` — 8 tests
+### `visual/lib/pointer-plane`
 
 Ground-plane intersection; refusal of parallel rays and of hits behind the camera; rotation round-trip; distance preservation; a quarter turn mapping the x axis onto z.
 
-### `visual/lib/ripple-queue` — 7 tests
+### `visual/lib/ripple-queue`
 
 Slot ordering; oldest-slot recycling; position carried through; a deliberate press always landing however close; a drag ignored until it has travelled the spacing; spacing measured from the last placement rather than the first; the first drag landing because there is nothing to measure against.
 
-### `work/lib/adjacent-case-study` — 5 tests
+### `work/lib/adjacent-case-study`
 
 The next study; the wrap from last to first; **null for a single study** rather than linking a page to itself; **null for an unknown slug** rather than silently pointing at the first entry; null for an empty list.
 
-### `common/lib/slug` — 4 tests
+### `common/lib/slug`
 
 No whitespace in output; punctuation collapsed rather than emitted; stability; distinct ids across the real stack-group titles.
 
-### `content/page-headers` — 6 tests
+### `content/page-headers`
 
 Every documented route resolves; routes that supply their own header return null; unknown route returns null; trailing slash and casing normalised; the root path is not stripped to empty; every header carries a legend and a title.
 
@@ -138,7 +139,7 @@ Every documented route resolves; routes that supply their own header return null
 
 ## 5. End-to-end coverage
 
-198 assertions across 3 suites, run at two viewports.
+As of `070be73`: 1,564 passed and 192 skipped across 15 specs, in four projects — Chromium at desktop and phone size, Firefox and WebKit at desktop size. Each skip names the engine-specific reason. The three original suites are detailed below; the scroll stories and interactives each have their own spec: `hero-intro`, `home-story`, `about-story`, `stack-story`, `work-story`, `draft-sync`, `tax-ladder`, `gate-run`, `approval-engine`. Three guard the layout for every page: `responsive` (geometry at eleven sizes), `scene-fit` (every scene pins, scrubs and fits at each size in a literal approved-sizes table: width 1024px and up pins at any height, narrower plays in flow) and `mobile-menu`.
 
 ### `content.spec.ts` — factual authority and structure
 
@@ -158,8 +159,8 @@ Every documented route resolves; routes that supply their own header return null
 |                          | The share card renders as a PNG                                                                                |
 |                          | The CV renders over 3,000 characters of text; the PDF returns 200 as `application/pdf`                         |
 |                          | No asset URL contains "undefined"                                                                              |
-| **Hero**                 | The brand line and the canvas are visible without scrolling                                                    |
-|                          | The layers are named — "golden angle", "thesis", "Fibonacci" appear                                            |
+| **Hero**                 | The pool is visible without scrolling                                                                          |
+|                          | The fun-fact card shows one fact at a time, and another on request                                             |
 |                          | The canvas aria-label states what it is and that it can be touched                                             |
 |                          | The name, the claim and the figures are present on the page                                                    |
 |                          | None of the 2023 gimmicks survive                                                                              |
@@ -262,28 +263,30 @@ The record of what each tier actually caught. This is the argument for the archi
 
 Every acceptance criterion maps to the tier that verifies it.
 
-| #     | Criterion                                                                         | Verified by                                         | Status                                           |
-| ----- | --------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------ |
-| AC-01 | Repository typechecks and lints clean, with no suppressions                       | Gate stages 2–3                                     | Pass                                             |
-| AC-02 | Every public figure resolves to one source; no superseded figure ships            | `content.spec` factual authority                    | Pass                                             |
-| AC-03 | The public surface never self-applies "Senior"                                    | `content.spec` factual authority                    | Pass                                             |
-| AC-04 | The hero states the offer above the fold                                          | `content.spec` hero + screenshot review             | Pass                                             |
-| AC-05 | Every case study carries four non-empty parts, within the confidentiality ceiling | `content.spec` structure + manual read              | Pass                                             |
-| AC-06 | No placeholder content survives                                                   | `content.spec` placeholder crawl                    | Pass                                             |
-| AC-07 | The stack page reflects current work and excludes the flagged terms               | `content.spec` stack                                | Pass                                             |
-| AC-08 | The CV is indexable text with a self-hosted PDF                                   | `content.spec` routes                               | Pass                                             |
-| AC-09 | The site builds and renders with no environment variables                         | CI, unconfigured                                    | Pass                                             |
-| AC-10 | Keyboard and screen-reader access hold on every route                             | `accessibility.spec` + manual tab pass              | Pass                                             |
-| AC-11 | Previously published links do not break                                           | `content.spec` redirects                            | Pass                                             |
-| AC-12 | Social and search previews are correct                                            | `content.spec` metadata, sitemap, OG                | Pass                                             |
-| AC-13 | Contrast holds in both themes                                                     | `accessibility.spec` × 2 themes + screenshot review | Pass                                             |
-| AC-14 | Reduced motion is honoured without losing content                                 | `reduced-motion.spec` pixel readback                | Pass                                             |
-| AC-15 | Each route gets exactly one header, from the layout                               | `content.spec` route header                         | Pass                                             |
-| AC-16 | Shared First Load JS stays within budget                                          | Gate stage 4, checked by hand                       | Pass — 103 kB shared, 107 kB home, budget 110 kB |
+| #     | Criterion                                                                         | Verified by                                         | Status                                                                                              |
+| ----- | --------------------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| AC-01 | Repository typechecks and lints clean, with no suppressions                       | Gate stages 2–3                                     | Pass                                                                                                |
+| AC-02 | Every public figure resolves to one source; no superseded figure ships            | `content.spec` factual authority                    | Pass                                                                                                |
+| AC-03 | The public surface never self-applies "Senior"                                    | `content.spec` factual authority                    | Pass                                                                                                |
+| AC-04 | The hero states the offer above the fold                                          | `content.spec` hero + screenshot review             | Pass                                                                                                |
+| AC-05 | Every case study carries four non-empty parts, within the confidentiality ceiling | `content.spec` structure + manual read              | Pass                                                                                                |
+| AC-06 | No placeholder content survives                                                   | `content.spec` placeholder crawl                    | Pass                                                                                                |
+| AC-07 | The stack page reflects current work and excludes the flagged terms               | `content.spec` stack                                | Pass                                                                                                |
+| AC-08 | The CV is indexable text with a self-hosted PDF                                   | `content.spec` routes                               | Pass                                                                                                |
+| AC-09 | The site builds and renders with no environment variables                         | CI, unconfigured                                    | Pass                                                                                                |
+| AC-10 | Keyboard and screen-reader access hold on every route                             | `accessibility.spec` + manual tab pass              | Pass                                                                                                |
+| AC-11 | Previously published links do not break                                           | `content.spec` redirects                            | Pass                                                                                                |
+| AC-12 | Social and search previews are correct                                            | `content.spec` metadata, sitemap, OG                | Pass                                                                                                |
+| AC-13 | Contrast holds in both themes                                                     | `accessibility.spec` × 2 themes + screenshot review | Pass                                                                                                |
+| AC-14 | Reduced motion is honoured without losing content                                 | `reduced-motion.spec` pixel readback                | Pass                                                                                                |
+| AC-15 | Each route gets exactly one header, from the layout                               | `content.spec` route header                         | Pass                                                                                                |
+| AC-16 | Shared First Load JS stays within budget                                          | `check:budget`, gate stage 5, automated             | Pass — 103.1 kB shared; heaviest route `/about` at 111.5 kB; budget 110 kB shared, +15 kB per route |
 
 ---
 
 ## 9. Last run
+
+As of `070be73`:
 
 ```
 bun run gate
@@ -291,12 +294,15 @@ bun run gate
 format:check   clean
 lint           clean
 typecheck      clean
-build          ✓ Compiled successfully — 11 routes
-test:unit      58 pass, 0 fail (7 files)
-test:e2e       198 passed
+build          compiled
+check:budget   within budget: shared 103.1 kB
+test:unit      409 pass, 0 fail
+test:e2e       1,564 passed, 192 skipped (Chromium desktop + phone, Firefox, WebKit)
 ```
 
-Bundle: **103 kB shared First Load JS**; home 107 kB; heaviest route `/about` at 110 kB. The 3D bundle is 82 kB gzipped and deferred, so it is not in any route's first load.
+Sizes are gzipped First Load JS as `scripts/check-budget.ts` measures them. The 3D bundle is deferred, so it is not in any route's first load.
+
+An earlier run is worth keeping on record for the incident below.
 
 **One incident during this run, worth recording:** the production server returned 500 on every route with `Cannot find module './vendor-chunks/next.js'`. This was a corrupted build artifact rather than a source defect — `rm -rf .next` and a rebuild cleared it, and the suite then passed. Worth knowing because the symptom looks like a code failure and is not one.
 
@@ -306,8 +312,8 @@ Bundle: **103 kB shared First Load JS**; home 107 kB; heaviest route `/about` at
 
 | Risk                                                                 | Likelihood | Impact | Mitigation                                                                                                                                                 |
 | -------------------------------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebKit-specific rendering or layout bug                              | Medium     | Medium | Untested. Recruiters open links on phones, so this is the first gap to close                                                                               |
+| WebKit-specific rendering or layout bug                              | Low        | Medium | Desktop WebKit runs in every gate; mobile WebKit with `E2E_ALL_BROWSERS=1`. Real devices remain untested                                                   |
 | CV content drifts between this repository and the CV working folder  | High       | Medium | Two sources today. Generating one from the other is the fix                                                                                                |
-| A performance regression lands unnoticed                             | Low        | Medium | Budget documented and checked by hand; not enforced in CI                                                                                                  |
+| A performance regression lands unnoticed                             | Low        | Medium | `check:budget` fails the gate, locally and in CI                                                                                                           |
 | A figure changes in the source documents and not in the facts module | Medium     | High   | The superseded-figure assertion catches a reappearance, not a new divergence. Manual check on any CV revision                                              |
 | The GitHub profile continues to argue against the site               | High       | High   | Outside this repository. Three actions are the owner's: enable private contribution display, pin the four real repositories, archive the learning-era ones |

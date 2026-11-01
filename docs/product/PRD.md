@@ -41,7 +41,7 @@ A six-page site that makes three arguments a CV cannot, and which is itself the 
 
 **2. The absence of public code is answered rather than hidden.** The footer says plainly that the public repositories stop in 2023 and everything since is private, which is why the case studies are written out instead of linked to a commit. An unexplained gap reads as a gap; an explained one reads as a reason.
 
-**3. The mathematics is demonstrated, not claimed.** Two pieces of interactive work carry it. The hero is a pool of 22,000 points placed by the golden angle, moving as ocean swell, with the travelling front of the harvested Fisher–Kolmogorov invasion from her BSc thesis sweeping through it — three layers of her own path in one surface. On the About page, the agent-based contagion model from one of her published papers runs live, with a transmission parameter the reader can move. A citation says she published; a model you can move shows it.
+**3. The mathematics is demonstrated, not claimed.** Two pieces of interactive work carry it. The hero is a pool of 22,000 points placed by the golden angle, moving as ocean swell, with the travelling front of the harvested Fisher–Kolmogorov invasion from her BSc thesis sweeping through it — three layers of her own path in one surface. On the About page, the agent-based contagion model from one of her published papers runs live, with a transmission parameter the reader can move. A citation says she published; a model you can move shows it. The engineering is demonstrated the same way: four case studies carry a hands-on model of their own mechanism — the draft-sync simulator, the tax-ladder playground, the release-gate run and the approval engine, where one requisition routes through two customers' own ladders beside the hard-coded approver it replaced.
 
 **4. The repository is the work sample.** The site claims release-gate discipline, single-source-of-truth design and documentation that ships with the change. A reviewer will open the repository, so the repository holds itself to those claims: strict TypeScript with no suppressions, a three-layer module architecture, unit tests over every pure rule, end-to-end tests over everything a visitor can observe, accessibility assertions per route in both themes, and a CI gate that runs all of it with no environment variables configured.
 
@@ -166,7 +166,7 @@ The through line: **every claim on this site is either checkable by the reader, 
 
 ### Performance budget
 
-- **Shared First Load JS is capped at 110 kB**, and any single route at 15 kB over it. The current figures are 103 kB shared and 107 kB on the home route.
+- **Shared First Load JS is capped at 110 kB**, and any single route at 15 kB over it. The current figures are 103 kB shared and 111 kB on the home route, the heaviest being `/about` at 111.5 kB.
 - **Anything heavy is deferred.** The 3D bundle is a dynamic import with SSR disabled; the server-rendered text paints first and the visual arrives after, so the home route never carries three.js in its first load.
 - **Device pixel ratio is capped** at 2 for canvas and 1.5 for WebGL. Full DPR on a retina display quadruples fill cost for no perceptible gain.
 - **No third-party runtime dependency for presentation.** Icons are inline SVG; fonts are self-hosted. The previous site loaded an icon kit from another origin, keyed by an environment variable, so every icon depended on a third party and a variable being set.
@@ -202,7 +202,7 @@ Three things automation cannot certify, recorded per run rather than asserted:
 
 ### The gate
 
-One command runs format check, lint, typecheck, production build, unit tests and end-to-end tests. It must be green before every commit. CI runs the same gate with **no environment variables configured**, which is what makes the "builds from a clean clone" claim honest rather than assumed.
+One command runs format check, lint, typecheck, production build, the First Load JS budget, unit tests and end-to-end tests. It must be green before every commit. CI runs the same `bun run gate`, budget included, in Chromium, Firefox and WebKit, with **no environment variables configured**, which is what makes the "builds from a clean clone" claim honest rather than assumed.
 
 ---
 
@@ -231,6 +231,6 @@ One command runs format check, lint, typecheck, production build, unit tests and
 
 - **The GitHub profile is now the weakest surface in the funnel.** 816 private contributions in twelve months, zero public, and a repository list that opens with 2020-era learning projects. Three actions are hers to take: enable private contribution display, pin the four real repositories, and archive the learning-era ones. The site answers the gap in words; the profile still argues against her in pictures.
 - The CV content exists in two places — this repository and the CV working folder — and will drift. Generating one from the other would remove the only real duplication left.
-- Only Chromium is installed for testing. WebKit matters, because recruiters open links on phones.
-- No performance budget is enforced in CI, only documented.
+- ~~Only Chromium is installed for testing.~~ Resolved: the e2e suite runs in Chromium, Firefox and WebKit, locally and in CI.
+- ~~No performance budget is enforced in CI.~~ Resolved: `scripts/check-budget.ts` fails the gate when shared First Load JS passes 110 kB or a route passes it by more than 15 kB.
 - The favicon is still the 2023 icon, and the only visual left from the previous site.

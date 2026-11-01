@@ -12,7 +12,7 @@ From the developer's perspective, three things about this product resist the obv
 
 **The content is the product, and it makes claims that must not drift.** Every figure on the site traces to a document outside the repository, and those documents carry two generations of numbers. There is no runtime to validate against and no reviewer who will catch a stale figure on the fourth read. The correctness problem is in the content, so the type system and the test suite have to reach into it.
 
-**The two interactive pieces are the most expensive thing on the site and the most load-bearing.** They carry the mathematics argument, which nothing else can. They also involve WebGL, a frame loop and 22,000 points — on a personal site with a 110 kB budget, for a reader who may be on a phone. Naive implementation either blows the budget or produces a screensaver.
+**The interactive pieces are the most expensive thing on the site and the most load-bearing.** The hero pool and the contagion model carry the mathematics argument, which nothing else can; the draft-sync simulator, the tax-ladder playground, the release-gate run and the approval engine let a reader work a case study's mechanism by hand. They also involve WebGL, canvas frame loops and 22,000 points — on a personal site with a 110 kB budget, for a reader who may be on a phone. Naive implementation either blows the budget or produces a screensaver.
 
 **The repository is part of the deliverable.** It will be opened and read by the same people the site is addressed to. That rules out the shortcuts a six-page site would normally permit: a page component that fetches, transforms and renders; a hook that owns business rules; an `any` standing in for a type.
 
@@ -55,7 +55,7 @@ Areas: `home`, `work`, `about`, `stack`, `cv`, `visual`. A thing moves into `com
 
 ### Content as contract
 
-Four typed modules own everything the site says.
+Typed modules own everything the site says.
 
 **`facts`** is the single source for every published figure, plus identity, positioning and the title policy. Nothing else in the codebase states a number. It additionally exports the previous generation of figures as a list, so the test suite can assert none of them appear in the built output. The figures are not wrong — they are older, which is precisely what returns from a stale draft.
 
@@ -82,17 +82,17 @@ A case study missing a part does not compile. `DiagramKind` is imported from the
 
 **`page-headers`** maps a route path to its masthead content, with a normalising accessor so a trailing slash or different casing cannot lose a header. Routes absent from the map get none, which is what the home page and the case studies want.
 
-**`hero`**, **`stack`** and **`cv`** hold the remaining page copy.
+**`hero`**, **`arc`**, **`work-story`**, **`try-it`**, **`interactives`**, **`stack`** and **`cv`** hold the remaining page copy: the home intro and fun facts, the about timeline, the selected-work story and its calls to action, the interactives' labels and descriptions, the stack story, and the CV.
 
 ### Rendering model
 
-Server components by default. `'use client'` carries a stated reason in a comment. There are five client components on the site, and each earns it: the theme toggle (persistence and an event handler), the site header (`usePathname` for active state), the route header (`usePathname`, because a layout is never told which child rendered), and the two visualisations (WebGL and a frame loop).
+Server components by default. `'use client'` carries a stated reason in a comment. Each client component earns it: the theme toggle (persistence and an event handler), the site header (`usePathname` for active state), the route header (`usePathname`, because a layout is never told which child rendered), the scroll drivers (`ScrollScene`, `ScrollyStage`), and the visualisations and interactives (WebGL, canvas frame loops, controls) — each behind a mount that loads it on demand.
 
 The route header is worth noting as a deliberate trade. Hoisting it into the layout requires knowing the current route, which on the App Router means `usePathname` and therefore a client component. It costs no additional bytes — the site header already pulls that hook into the client bundle — and it still renders during SSR, so the `h1` is in the HTML a crawler receives.
 
 ### Visualisation design
 
-Both pieces share three hooks in `common/hooks`: `useInViewport`, `usePageVisible`, `useReducedMotion`. Every animation is gated on all three. A loop that runs while nobody is looking is a defect, not a feature.
+The shared hooks live in `common/hooks`: `useInViewport`, `useLatchedInViewport`, `usePageVisible`, `useReducedMotion`, `useMediaQuery`, `useTheme`, `useDisclosure` (the mobile menu), and the scroll-story drivers `useSceneProgress`, `useActiveStep`, `useSceneAttribute` and `useAutoRun` (the clock that plays a story by itself below `pin`). Every animation is gated on viewport, visibility and reduced motion. A loop that runs while nobody is looking is a defect, not a feature.
 
 **Hero — the flow field.** A Vogel spiral of 22,000 points at `r = c√n, θ = n·137.5°`, with three motion fields composed in the vertex shader: ocean swell as a superposition of three sinusoids, the travelling front of a harvested Fisher–Kolmogorov invasion, and up to four decaying ripples placed by the pointer.
 
@@ -187,11 +187,13 @@ Observable behaviour only: rendered text, response status, head contents, redire
 | `common/lib/slug`              | No whitespace, punctuation collapsed, stability, distinctness across the real titles                                                                                                                                                                                        |
 | `content/page-headers`         | Every documented route resolves, routes with their own header return null, trailing slash and casing normalised                                                                                                                                                             |
 
-**End-to-end — three suites.**
+**End-to-end — three cross-cutting suites, and one spec per story.**
 
 `content.spec.ts` — factual authority (no superseded figure, no self-applied "Senior") across every route; absence of placeholder text; the confidentiality ceiling per case study; the four-part structure per slug; the stack page's exclusion list; route status, title and description per route; redirects; sitemap and robots; the share card; the CV as indexable text and a self-hosted PDF; no asset URL containing `undefined`; the hero above the fold; exactly one route header per route.
 
 `accessibility.spec.ts` — axe per route in both themes, failing on serious and critical; the skip link as first tab stop; discernible names on every interactive element; the theme toggle's announced state; `aria-current` on the active nav item; exactly one `h1` per route.
+
+Each scroll story and interactive has its own spec beside these — `hero-intro`, `home-story`, `about-story`, `stack-story`, `work-story`, `draft-sync`, `tax-ladder`, `gate-run`, `approval-engine` — asserting what a reader sees at each beat or after each control, under reduced motion and without scripts.
 
 `reduced-motion.spec.ts` — reads the 2D canvas back and asserts pixels were painted; asserts the still-frame notices. This suite exists because "the canvas is in the viewport" passes for a canvas that is in the viewport and blank, which is the defect that shipped.
 

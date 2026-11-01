@@ -16,7 +16,9 @@ Budget: shared First Load JS ≤ 110 kB. Anything heavy is `next/dynamic`, viewp
 
 ```bash
 bun run dev    # http://localhost:3000
-bun run gate   # format:check → lint → typecheck → build → test:unit → test:e2e
+bun run gate   # format:check → lint → typecheck → build → check:budget → test:unit → test:e2e
 ```
+
+The e2e suite runs in Chromium (desktop and phone), Firefox and WebKit; mobile WebKit joins with `E2E_ALL_BROWSERS=1`.
 
 Never push, never merge to `main`, never deploy.

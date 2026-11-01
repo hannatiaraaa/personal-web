@@ -10,15 +10,15 @@ A **run** on this repo takes one goal and closes it while she is away. The phase
 
 `/Users/user/Documents/hanna-personal-website` · remote `hannatiaraaa/personal-web` · deploys to `hannatiaraaa.vercel.app`
 
-|                |                                                                                         |
-| -------------- | --------------------------------------------------------------------------------------- |
-| Stack          | Next.js 15 App Router · React 19 · Tailwind v4 · TypeScript strict · Bun                |
-| Gates          | `bun run gate` — format:check, lint, typecheck, build, test:e2e                         |
-| Dev            | `bun run dev` → http://localhost:3000                                                   |
-| Content        | `src/content/` — facts, case studies, stack, timeline. Typed modules, not MDX.          |
-| Ledger home    | `docs/private/`                                                                         |
-| Plan of record | `docs/refactor-plan-portfolio-rebuild.md`, `docs/acceptance-brief-portfolio-rebuild.md` |
-| Branch         | work off `dev`; never push, never merge to `main`, never deploy                         |
+|                |                                                                                                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stack          | Next.js 15 App Router · React 19 · Tailwind v4 · TypeScript strict · Bun                                                                                                              |
+| Gates          | `bun run gate` — format:check, lint, typecheck, build, check:budget, test:unit, test:e2e                                                                                              |
+| Dev            | `bun run dev` → http://localhost:3000                                                                                                                                                 |
+| Content        | `src/content/` — `facts.ts`, `case-studies.ts`, `arc.ts`, `hero.ts`, `work-story.ts`, `interactives.ts`, `try-it.ts`, `page-headers.ts`, `cv.ts`, `stack.ts`. Typed modules, not MDX. |
+| Ledger home    | `docs/private/`                                                                                                                                                                       |
+| Plan of record | `docs/refactor-plan-portfolio-rebuild.md`, `docs/acceptance-brief-portfolio-rebuild.md`, `docs/refactor-plan-scrollytelling.md`                                                       |
+| Branch         | work off `dev`; never push, never merge to `main`, never deploy                                                                                                                       |
 
 ## What is different here
 
