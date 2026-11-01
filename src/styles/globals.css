@@ -83,10 +83,11 @@
    * Elevation: a 1px ring plus lift, all transparent, so it holds on any
    * background. Borders stay for structure (dividers, rules, selected state).
    * Dark mode is one faint light ring: a dark shadow on navy reads as nothing.
+   * The resting contact edge is unblurred: it sits on every card a scroll
+   * story moves, and WebKit painting without a GPU spends about two thirds
+   * of each /about frame re-blurring those shadows.
    */
-  --shadow-border:
-    0 0 0 1px rgb(var(--shadow-key) / 0.1), 0 1px 2px -1px rgb(var(--shadow-key) / 0.08),
-    0 2px 4px 0 rgb(var(--shadow-key) / 0.04);
+  --shadow-border: 0 0 0 1px rgb(var(--shadow-key) / 0.1), 0 1px 0 0 rgb(var(--shadow-key) / 0.06);
   --shadow-border-hover:
     0 0 0 1px rgb(var(--shadow-key) / 0.16), 0 1px 2px -1px rgb(var(--shadow-key) / 0.1),
     0 2px 4px 0 rgb(var(--shadow-key) / 0.06);

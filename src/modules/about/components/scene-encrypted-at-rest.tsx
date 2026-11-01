@@ -21,8 +21,11 @@ const RUNGS = [
   { y: 172, half: 14 },
 ] as const;
 
-/** Rows of ciphertext. Illustrative bytes, not real output. */
-const CIPHER_ROWS = ['9f3a 07c1 e4b8', '5d02 bb7e 31f9', 'c86a 4e13 0fd7', '27e5 a90c 6b48'] as const;
+/**
+ * Rows of ciphertext. Illustrative bytes, not real output. Two groups, so the
+ * rows keep room at the right edge where the mono face sets wider.
+ */
+const CIPHER_ROWS = ['9f3a 07c1', '5d02 bb7e', 'c86a 4e13', '27e5 a90c'] as const;
 const ROW_STAGGER = 0.15;
 
 /** Nalagenetics: genetic results kept unreadable at rest by a client-side library. */

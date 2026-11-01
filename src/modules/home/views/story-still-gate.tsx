@@ -10,6 +10,12 @@ const FLAGGED_RING_RADIUS = 8;
 const RING_ORDER = GATE_DOTS.length + 4;
 
 const LEGEND_Y = 134;
+/**
+ * The legend starts under the grid's first column so the long label keeps
+ * about a tenth of its width spare at the right edge: glyph advances round
+ * differently per platform (Linux Chromium sets this label ~6% wider).
+ */
+const LEGEND_TRACKING = 0.5;
 
 export function GateStill() {
   const flagged = GATE_DOTS.find((dot) => dot.isFlagged);
@@ -39,31 +45,31 @@ export function GateStill() {
       )}
 
       <circle
-        cx='44'
+        cx='32'
         cy={LEGEND_Y - 2}
         r={DOT_RADIUS}
         className='fill-signal-bright'
       />
       <text
-        x='51'
+        x='39'
         y={LEGEND_Y}
         fontSize='6.5'
-        letterSpacing='0.6'
+        letterSpacing={LEGEND_TRACKING}
         className='fill-ink-muted font-mono'
       >
         PASS
       </text>
       <circle
-        cx='86'
+        cx='70'
         cy={LEGEND_Y - 2}
         r={FLAGGED_RADIUS}
         className='fill-caution'
       />
       <text
-        x='94'
+        x='77'
         y={LEGEND_Y}
         fontSize='6.5'
-        letterSpacing='0.6'
+        letterSpacing={LEGEND_TRACKING}
         className='fill-caution font-mono'
       >
         INHERITED · QUARANTINED BY NAME

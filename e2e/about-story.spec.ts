@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { arc, layers } from '../src/content/arc';
 import { layerCountSpans, layersOwnedAt, newLayersAt } from '../src/modules/about/lib/layers-owned';
-import { scrollByHand } from './support/input';
+import { nextFrame, scrollByHand, settleScroll } from './support/input';
 import { shouldPin } from './support/approved-modes';
 
 const ARC = 'The arc, one era at a time';
@@ -15,6 +15,13 @@ const MAX_WHEELS = 80;
 const WHEEL_LIMIT = 300;
 const SETTLED_PX = 30;
 const LAYER_IDS = layers.map((layer) => layer.id);
+/**
+ * A walk through all twelve eras wheels each one into the band, and every era
+ * that becomes current slides the panel. WebKit on Linux paints that in
+ * software at twice the pixel ratio, so the walk outlasts the default timeout
+ * on a CI runner; the other engines finish well inside it.
+ */
+const SLOW_WALK = 'a twelve-era walk, painted in software by WebKit on Linux';
 /** The smallest screen the panel is approved to pin on (support/approved-modes.ts). */
 const PINS = { width: 1024, height: 640 };
 
@@ -33,14 +40,24 @@ async function wheelStepIntoBand(page: Page, step: Locator) {
   if (!viewport) throw new Error('no viewport');
   await page.mouse.move(viewport.width / 2, viewport.height / 2);
 
+  let isAtRest = false;
   for (let i = 0; i < MAX_WHEELS; i += 1) {
     const box = await step.boundingBox();
     if (!box) throw new Error('step is not rendered');
     const targetTop = Math.max(viewport.height * STEP_TOP_AT, viewport.height * BAND_CENTRE_AT - box.height / 2);
     const delta = box.y - targetTop;
-    if (Math.abs(delta) < SETTLED_PX) return;
-    await scrollByHand(page, Math.max(-WHEEL_LIMIT, Math.min(WHEEL_LIMIT, delta)));
-    await page.waitForTimeout(60);
+    if (Math.abs(delta) < SETTLED_PX) {
+      // Close enough mid-scroll is not close enough at rest: check again once it stops.
+      if (isAtRest) return;
+      await settleScroll(page);
+      isAtRest = true;
+      continue;
+    }
+    isAtRest = false;
+    // A screen or more away, one long wheel brings it within a screen; the last screen goes in short wheels.
+    const limit = Math.max(WHEEL_LIMIT, Math.abs(delta) - viewport.height);
+    await scrollByHand(page, Math.max(-limit, Math.min(limit, delta)));
+    await nextFrame(page);
   }
 }
 
@@ -55,7 +72,8 @@ function stepsOf(stageLocator: Locator) {
 test.describe('the arc as a scroll story', () => {
   test.skip(({ page }) => !pins(page), 'a step follows the scroll only where the story pins');
 
-  test('the active step follows the reader down the arc and back', async ({ page }) => {
+  test('the active step follows the reader down the arc and back', async ({ page, browserName }) => {
+    test.slow(browserName === 'webkit', SLOW_WALK);
     await page.goto('/about');
     const steps = stepsOf(stage(page, ARC));
     await expect(steps).toHaveCount(arc.length);
@@ -116,7 +134,11 @@ test.describe('the arc as a scroll story', () => {
     expect(new Set(values).size).toBe(values.length);
   });
 
-  test('pinned, the panel shows the era being read and fills the layers owned so far', async ({ page }) => {
+  test('pinned, the panel shows the era being read and fills the layers owned so far', async ({
+    page,
+    browserName,
+  }) => {
+    test.slow(browserName === 'webkit', SLOW_WALK);
     const viewport = page.viewportSize();
     test.skip(!viewport || viewport.width < PINS.width, 'the panel only shows where the stage pins');
     await page.goto('/about');
@@ -301,19 +323,24 @@ test.describe('every width and height', () => {
   for (const viewport of VIEWPORTS) {
     test(`${viewport.width}×${viewport.height}: no sideways scroll, and the panel never covers the era being read`, async ({
       page,
+      browserName,
     }) => {
+      test.slow(browserName === 'webkit', SLOW_WALK);
       await page.setViewportSize(viewport);
       await page.goto('/about');
       const arcStage = stage(page, ARC);
 
       for (let index = 0; index < arc.length; index += 1) {
-        await wheelStepIntoBand(page, stepsOf(arcStage).nth(index));
+        const step = stepsOf(arcStage).nth(index);
         const current = arcStage.locator('[aria-current="step"]');
-        // Below the fit the eras are cards in flow, none of them the current one.
+        // Below the fit the eras are cards in flow, none of them the current
+        // one. Nothing follows the scroll there, so no wheel is needed to reach them.
         if (!pins(page)) {
+          await step.evaluate((element) => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
           await expect(current).toHaveCount(0);
           continue;
         }
+        await wheelStepIntoBand(page, step);
         await expect(current).toHaveCount(1);
 
         const text = await current.boundingBox();

@@ -124,7 +124,7 @@ test.describe('one story', () => {
 });
 
 test.describe('pinned story, wide and tall screens', () => {
-  test.skip(({ isMobile }) => isMobile, 'pinning needs a wide, tall screen');
+  test.skip(({ isMobile }) => isMobile, 'pinning needs a screen at least 1024px wide');
 
   test('the drawing pins, and the step and the drawing follow the scroll', async ({ page }) => {
     await page.goto('/');

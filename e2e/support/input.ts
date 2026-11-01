@@ -30,3 +30,45 @@ export async function scrollByHand(page: Page, deltaY: number): Promise<void> {
     window.scrollBy(0, dy);
   }, deltaY);
 }
+
+/**
+ * How long the scroll position must hold, in rendered frames and in time, to
+ * count as at rest. Frames, so a slow renderer is waited out rather than read
+ * mid-scroll; time, because a smooth scroll can start a few frames after the
+ * wheel that asked for it.
+ */
+const STILL_FRAMES = 3;
+const STILL_MS = 120;
+
+/** Waits until a hand scroll has come to rest: a wheel may scroll smoothly, past the moment it was sent. */
+export async function settleScroll(page: Page): Promise<void> {
+  await page.evaluate(
+    ({ stillFrames, stillMs }) =>
+      new Promise<void>((resolve) => {
+        let last = window.scrollY;
+        let still = 0;
+        let since = performance.now();
+        const tick = (now: number) => {
+          const y = window.scrollY;
+          if (y !== last) {
+            last = y;
+            still = 0;
+            since = now;
+          } else {
+            still += 1;
+          }
+          if (still >= stillFrames && now - since >= stillMs) resolve();
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+    { stillFrames: STILL_FRAMES, stillMs: STILL_MS },
+  );
+}
+
+/** Waits for the next rendered frame, so a wheel just sent has moved the page before it is measured. */
+export async function nextFrame(page: Page): Promise<void> {
+  await page.evaluate(
+    () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
+  );
+}

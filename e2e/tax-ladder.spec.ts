@@ -160,7 +160,7 @@ test.describe('assistive tech', () => {
 
 test.describe('scroll choreography', () => {
   test('where it pins, the broken receipt prints as the scene scrolls, then the ladder', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'the scene pins only on a screen tall and wide enough');
+    test.skip(isMobile, 'the scene pins only on a screen at least 1024px wide');
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(PATH);
 

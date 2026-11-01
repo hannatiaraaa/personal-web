@@ -4,7 +4,7 @@ import { figures } from '../src/content/facts';
 import { releaseGateRunCopy } from '../src/content/interactives';
 import { buildGateSuite, buildPermissionMatrix } from '../src/modules/visual/lib/gate-run';
 import { formatGateCounter, gateRunStateAt } from '../src/modules/visual/lib/gate-run-timeline';
-import { scrollByHand } from './support/input';
+import { scrollByHand, settleScroll } from './support/input';
 
 /**
  * The release gate run on its case study: pinned and scrubbed by scroll at the
@@ -76,30 +76,9 @@ async function expectBeat(page: Page, beat: number, timeout?: number): Promise<v
   await expect.poll(() => captionOpacity(page, beat)).toBe('1');
 }
 
-/** Waits for a hand scroll to come to rest — a wheel scrolls smoothly, past the moment it was sent. */
-async function settleScroll(page: Page): Promise<void> {
-  let previous = -1;
-  await expect
-    .poll(async () => {
-      const y = await page.evaluate(() => window.scrollY);
-      const isSettled = y === previous;
-      previous = y;
-      return isSettled;
-    })
-    .toBe(true);
-}
-
-/** Waits until a locator stops moving: a transition has finished. */
-async function expectSettled(locator: Locator): Promise<void> {
-  let previous = '';
-  await expect
-    .poll(async () => {
-      const box = JSON.stringify(await locator.boundingBox());
-      const isSettled = box === previous;
-      previous = box;
-      return isSettled;
-    })
-    .toBe(true);
+/** Waits until a locator's transitions have finished: it is at rest. */
+async function settleAnimations(locator: Locator): Promise<void> {
+  await locator.evaluate((element) => Promise.all(element.getAnimations().map((animation) => animation.finished)));
 }
 
 function liveCounter(page: Page): Locator {
@@ -119,17 +98,27 @@ async function reachFigure(page: Page): Promise<void> {
   await expect(figure(page).getByRole('img')).toHaveCount(1);
 }
 
-/** The run at rest at its end, however this viewport drives it: scrolled through when pinned, skipped when playing. */
+/**
+ * The run at rest at its end, however this viewport drives it. Pinned, it is
+ * scrolled through. Played, it rests finished until it plays once by itself on
+ * coming into view, so the run is skipped only once that has started:
+ * deciding earlier reads the resting picture just before the autoplay hides it.
+ */
 async function reachFinal(page: Page): Promise<void> {
-  await figure(page).evaluate((element) => {
-    const { bottom } = element.getBoundingClientRect();
-    window.scrollTo({ top: Math.max(0, bottom + window.scrollY - window.innerHeight), behavior: 'instant' });
-  });
   const skip = page.getByRole('button', { name: 'Skip to the result' });
-  if (await skip.isVisible()) await skip.click();
+  const isPlayer = await skip.or(page.getByRole('button', { name: 'Replay the run' })).isVisible();
+  if (isPlayer) {
+    await figure(page).scrollIntoViewIfNeeded();
+    await skip.click();
+  } else {
+    await figure(page).evaluate((element) => {
+      const { bottom } = element.getBoundingClientRect();
+      window.scrollTo({ top: Math.max(0, bottom + window.scrollY - window.innerHeight), behavior: 'instant' });
+    });
+  }
   await expectBeat(page, LAST_BEAT);
   // The stamp lands on a transition; measure it at rest.
-  await expectSettled(page.locator('.gate-run-live .gate-run-stamp'));
+  await settleAnimations(page.locator('.gate-run-live .gate-run-stamp'));
 }
 
 /** Opaque pixels on the live canvas, and how many of them are the pass colour. */
@@ -186,10 +175,10 @@ test.describe('pinned: scroll drives the run', () => {
     const frame = page.locator('.gate-run-frame');
 
     await scrollByHand(page, 600);
-    await expectSettled(frame);
+    await settleScroll(page);
     const before = await frame.boundingBox();
     await scrollByHand(page, 600);
-    await expectSettled(frame);
+    await settleScroll(page);
     const after = await frame.boundingBox();
 
     expect(Math.abs((after?.y ?? 0) - (before?.y ?? 1))).toBeLessThan(2);
