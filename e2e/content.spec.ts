@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { identity, supersededFigures } from '../src/content/facts';
 import { caseStudies } from '../src/content/case-studies';
+import { heroFact, heroFacts } from '../src/content/hero';
 
 const ROUTES = ['/', '/work', '/stack', '/about', '/cv', ...caseStudies.map((s) => `/work/${s.slug}`)];
 
@@ -70,7 +71,8 @@ test.describe('case study structure', () => {
       await page.goto(`/work/${study.slug}`);
 
       for (const legend of ['How it was reported', 'What it actually was', 'What shipped', 'Evidence']) {
-        await expect(page.getByText(legend, { exact: true })).toBeVisible();
+        // As headings: the part indicator repeats "Evidence" as a link.
+        await expect(page.getByRole('heading', { level: 2, name: legend, exact: true })).toBeVisible();
       }
 
       await expect(page.getByRole('blockquote')).toContainText(study.reported);
@@ -84,7 +86,8 @@ test.describe('stack page reflects current work', () => {
     await page.goto('/stack');
     const body = (await page.locator('body').innerText()).toLowerCase();
 
-    for (const term of ['matlab', 'maple', 'mathematica', 'microsoft 365', 'antdesign', 'onesignal', 'android sdk']) {
+    // MATLAB, Maple and Mathematica are shown by her choice, as her maths tools.
+    for (const term of ['microsoft 365', 'antdesign', 'onesignal', 'android sdk']) {
       expect(body, `/stack must not list "${term}" — Brand_and_Headlines.md §5`).not.toContain(term);
     }
   });
@@ -172,10 +175,8 @@ test.describe('routes and metadata', () => {
 });
 
 test.describe('the hero', () => {
-  // The visualisation sits above the fold on purpose — it is the one thing on
-  // the site nobody else has. What must be visible without scrolling is the
-  // brand line and the pool; the name, the claim and the figures follow and are
-  // asserted to exist.
+  // The pool sits above the fold on purpose. What must be visible without
+  // scrolling is the brand line and the pool; the rest is asserted to exist.
   test('the pool is visible without scrolling', async ({ page }) => {
     await page.goto('/');
 
@@ -183,13 +184,21 @@ test.describe('the hero', () => {
     await expect(page.locator('canvas').first()).toBeInViewport();
   });
 
-  test('the layers are named, so the piece reads as a path rather than a screensaver', async ({ page }) => {
+  // The pool is a background, so it is not explained in a caption: it gets a
+  // fun-fact card, one true fact at a time, and the reader asks for the next.
+  test('the pool gets one fun fact at a time, and another on request', async ({ page }) => {
     await page.goto('/');
-    const body = await page.locator('body').innerText();
+    const card = page.getByRole('complementary', { name: heroFact.regionLabel });
 
-    expect(body).toContain('golden angle');
-    expect(body).toContain('thesis');
-    expect(body).toContain('Fibonacci');
+    await expect(card).toContainText(heroFact.label);
+    await expect(card).toContainText('golden angle');
+    await expect(card).toContainText('Fibonacci');
+    await expect(card).not.toContainText('thesis');
+
+    await card.getByRole('button', { name: heroFact.next }).click();
+    await expect(card).toContainText('thesis');
+    await expect(card).not.toContainText('Fibonacci');
+    await expect(card).toContainText(`2 / ${heroFacts.length}`);
   });
 
   test('the canvas tells assistive tech what it is and how to touch it', async ({ page }) => {
@@ -219,9 +228,8 @@ test.describe('the hero', () => {
 });
 
 test.describe('the route header comes from the layout', () => {
-  // It used to be repeated in four pages. Hoisting it means the layout has to
-  // put exactly one on the routes that want one, and none on the routes that
-  // bring their own.
+  // The layout renders the header: exactly one on routes that want one, none on
+  // routes that bring their own.
   for (const [route, title] of [
     ['/work', 'Each of these is one problem that turned out to be something else'],
     ['/stack', 'Grouped by what I would reach for on Monday'],
