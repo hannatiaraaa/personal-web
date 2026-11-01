@@ -5,14 +5,14 @@
 import dynamic from 'next/dynamic';
 
 /**
- * Static stand-in at the exact canvas height, so the hero never shifts when the
- * real thing arrives and something is on screen immediately.
+ * Static stand-in filling the same box as the canvas, so the hero never shifts
+ * when the real thing arrives and something is on screen immediately.
  */
 function Placeholder() {
   return (
     <div
       aria-hidden='true'
-      className='from-sky-low/30 via-signal-cyan/12 h-[19rem] w-full animate-pulse rounded-[var(--radius)] bg-radial to-transparent sm:h-[26rem]'
+      className='from-sky-low/30 via-signal-cyan/12 h-full w-full bg-radial to-transparent'
     />
   );
 }

@@ -3,20 +3,43 @@
  * alphabetical list cannot tell what she would reach for on Monday from what
  * she touched at university.
  *
- * Deliberately absent: MATLAB, Maple, Wolfram Mathematica, Microsoft 365,
- * AntDesign, OneSignal, Android SDK. All true, all on the CV, and all listed in
- * Brand_and_Headlines.md §5 as terms that pull the wrong recruiters. The stack
- * page is a public surface, so they stay off it.
+ * Deliberately absent: Microsoft 365, AntDesign, OneSignal, Android SDK. All
+ * true, all on the CV, and all listed in Brand_and_Headlines.md §5 as terms that
+ * pull the wrong recruiters. The same note named MATLAB, Maple and Wolfram
+ * Mathematica; she chose to show them, as the tools of her mathematics.
  */
 
-export type StackGroup = {
+/**
+ * A stable name for a group, which the page draws its explainer scene from. A
+ * union rather than a string, so a group without a scene does not compile.
+ */
+export type StackGroupId = 'daily' | 'offline' | 'architecture' | 'domain' | 'ai-delivery' | 'archive';
+
+/** A labelled part of a group, for a group that spans more than one kind of work. */
+export type StackSubgroup = {
   readonly title: string;
-  readonly note: string;
   readonly items: readonly string[];
 };
 
+type StackGroupHeading = {
+  readonly id: StackGroupId;
+  readonly title: string;
+  readonly note: string;
+};
+
+/**
+ * A group lists its items flat or in labelled subgroups, never both, so no
+ * item can be stated twice.
+ */
+export type StackGroup = StackGroupHeading &
+  (
+    | { readonly items: readonly string[]; readonly subgroups?: never }
+    | { readonly subgroups: readonly StackSubgroup[]; readonly items?: never }
+  );
+
 export const stackGroups: readonly StackGroup[] = [
   {
+    id: 'daily',
     title: 'Reach for daily',
     note: 'What I am writing this week, across multiple repositories.',
     items: [
@@ -37,6 +60,7 @@ export const stackGroups: readonly StackGroup[] = [
     ],
   },
   {
+    id: 'offline',
     title: 'Offline-first and on-device',
     note: 'The part that is scarce. Built for crews working where there is no network at all, not where it is slow.',
     items: [
@@ -50,6 +74,7 @@ export const stackGroups: readonly StackGroup[] = [
     ],
   },
   {
+    id: 'architecture',
     title: 'Architecture and release quality',
     note: 'Designed so the next change is configuration rather than code, and so a release can be certified without production data.',
     items: [
@@ -66,26 +91,46 @@ export const stackGroups: readonly StackGroup[] = [
     ],
   },
   {
+    id: 'domain',
     title: 'Domain',
     note: 'The part that takes longest to learn and is hardest to hire for.',
-    items: [
-      'Work order management (CMMS, planned maintenance)',
-      'Asset and component hierarchies',
-      'Inspections and defect reporting',
-      'Scheduling and recurrence',
-      'Inventory',
-      'Procure-to-pay (requisitions, purchase orders, vendors, cost codes)',
-      'Multi-tier approvals and spending authority',
-      'Multi-tenant B2B SaaS',
-      'Audit trails',
-      'ERP / SAP integration',
+    // The same three kinds of work as the Domain scene's lanes.
+    subgroups: [
+      {
+        title: 'B2B operations',
+        items: [
+          'Work order management (CMMS, planned maintenance, scheduling and recurrence)',
+          'Asset and component hierarchies',
+          'Inspections and defect reporting',
+          'Procure-to-pay (requisitions, purchase orders, vendors, cost codes)',
+          'Multi-tier approvals and spending authority',
+          'Multi-tenant B2B SaaS',
+          'Inventory',
+          'Audit trails',
+          'ERP / SAP integration',
+        ],
+      },
+      {
+        title: 'B2C health',
+        items: ['Health management apps (patient and physician)', 'Client-side encryption of genetic data at rest'],
+      },
+      {
+        title: 'Applied mathematics',
+        items: [
+          'Agent-based modelling',
+          'Support vector machine (SVM) classification',
+          'Deterministic and stochastic modelling',
+          'Optimal control',
+        ],
+      },
     ],
   },
   {
+    id: 'ai-delivery',
     title: 'AI-assisted delivery',
     note: 'Inside gates written first. The release gate, the permission matrix and the documentation contract all predate the agent work that runs through them.',
     items: [
-      'Claude Code and agent orchestration',
+      'Claude Code, ChatGPT, GitHub Copilot and Antigravity, with agent orchestration',
       'Executable operational runbooks (dry-run defaults, numbered stop conditions, idempotent writes)',
       'Prompt-as-spec',
       'Agent context engineering (CLAUDE.md / AGENTS.md)',
@@ -93,11 +138,15 @@ export const stackGroups: readonly StackGroup[] = [
     ],
   },
   {
+    id: 'archive',
     title: 'Also used, less recently',
     note: 'Shipped with, would pick up again without ceremony.',
     items: [
       'Python',
       'R',
+      'MATLAB',
+      'Maple',
+      'Wolfram Mathematica',
       'Redux Toolkit',
       'Redux Saga',
       'Drizzle',

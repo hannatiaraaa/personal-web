@@ -28,7 +28,7 @@ Ranked by how sharply the reported and real problems diverge:
 
 1. **Offline draft ownership** — "records keep reverting" was read as a sync-frequency problem; drafts had no ownership at all. The flagship.
 2. **Tax arithmetic** — "rounding errors" was tax and discount living at several levels at once, so no single place was wrong.
-3. **Release gate and permission matrix** — "all tests green" meant nothing because 171 gaps were inherited; fixing first would have blocked releases for months, so they were frozen by name instead.
+3. **Release gate and permission matrix** — "all tests green" meant nothing because a large set of gaps was inherited; fixing first would have blocked releases for months, so they were frozen by name instead.
 4. **Configurable approval engine** — one hard-coded approver did not survive the second customer; the fix was configuration the business sets itself, not a branch per customer.
 5. **Procure-to-pay migration** — a whole module moved from the offline app to the web app, AI-assisted, inside gates written first.
 6. **Native to React Native** — 20+ native defects across two codebases unified onto one, plus the client-side encryption library.

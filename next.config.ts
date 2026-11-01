@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 /**
- * Assets live off-repo behind an image loader (see src/lib/image-loader.ts).
- * Remote patterns are only registered when the host is configured, so a clean
+ * Assets live off-repo behind an image loader (src/common/lib/image-loader.ts).
+ * Remote patterns are registered only when the host is configured, so a clean
  * clone with no .env.local still builds.
  */
 const storageHost = process.env.NEXT_PUBLIC_STORAGE_HOST_NAME;

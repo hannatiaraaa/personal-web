@@ -1,39 +1,39 @@
-import { slugify } from '@/common/lib/slug';
+import { describeCaseStudyPart, type CaseStudyPartKey } from '@/modules/work/lib/case-study-parts';
+import { PartHeading } from './part-heading';
 
 type Props = {
-  legend: string;
+  part: CaseStudyPartKey;
   children: React.ReactNode;
+  /** Set after the prose at the column's full width — for a figure wider than a line of text. */
+  wide?: React.ReactNode;
 };
 
 /**
- * One of the four parts of a case study.
- *
- * The legend is an `h2`, not styled text. It was a `<p>`, which left every case
- * study with an `h1` and nothing else — a screen-reader user navigating by
- * heading could not reach "What it actually was", "What shipped" or "Evidence".
- * axe does not flag that, and the one-h1-per-page test passes either way.
+ * One of the four parts of a case study, and a `data-step` of the part
+ * indicator. The legend is an `h2` so a screen-reader user can reach every part
+ * by heading — neither axe nor the one-h1 test would catch a `<p>` here.
  */
-export function CaseStudyPart({ legend, children }: Props) {
-  const id = slugify(legend);
+export function CaseStudyPart({ part, children, wide }: Props) {
+  const { id, legend, step } = describeCaseStudyPart(part);
 
   return (
     <section
       className='reveal'
       aria-labelledby={id}
+      data-step={step}
     >
       <div className='flex items-center gap-3'>
         <span
           aria-hidden='true'
           className='from-sky-high to-signal-cyan h-3 w-0.5 rounded-full bg-linear-to-b'
         />
-        <h2
+        <PartHeading
           id={id}
-          className='legend'
-        >
-          {legend}
-        </h2>
+          legend={legend}
+        />
       </div>
       <div className='prose-page text-body text-ink-muted mt-5'>{children}</div>
+      {wide}
     </section>
   );
 }

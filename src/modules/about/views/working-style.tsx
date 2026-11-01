@@ -23,17 +23,17 @@ export function WorkingStyle() {
         Based in {identity.location} ({identity.timezone}), {positioning.overlap}. {positioning.availability} in
         field-service, operations, HR/payroll, fintech, edutech, or other software industries.
       </p>
-      <div className='mt-6 flex flex-wrap items-center gap-x-6 gap-y-3'>
+      <div className='mt-6 flex flex-wrap items-center gap-x-5 gap-y-4'>
         <Link
           href='/cv'
           className='btn-primary group'
         >
           Read the full CV
-          <ArrowIcon className='transition-transform group-hover:translate-x-0.5' />
+          <ArrowIcon className='transition-transform duration-200 group-hover:translate-x-1' />
         </Link>
         <a
           href={`mailto:${identity.email}`}
-          className='text-meta text-ink-muted decoration-line-strong hover:text-ink underline underline-offset-4 transition-colors'
+          className='btn-quiet'
         >
           {identity.email}
         </a>

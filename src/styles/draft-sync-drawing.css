@@ -1,0 +1,401 @@
+/*
+ * The simulator's drawing: server, tablets, links, messages, stamp, timeline
+ * and sea, and the entrances that play as a step changes. The frame, controls
+ * and log around it are in draft-sync.css.
+ */
+
+@layer components {
+  .draft-sync-svg text {
+    fill: var(--ink);
+  }
+
+  .draft-sync-svg .draft-sync-kicker {
+    fill: var(--ink-faint);
+    letter-spacing: 0.08em;
+  }
+
+  .draft-sync-svg .draft-sync-status {
+    fill: var(--ink-muted);
+  }
+
+  .draft-sync-tablet[data-signal='offline'] .draft-sync-status {
+    fill: var(--caution);
+  }
+
+  .draft-sync-svg .draft-sync-version {
+    fill: var(--signal);
+  }
+
+  .draft-sync-server[data-state='reverted'] .draft-sync-version {
+    fill: var(--caution);
+  }
+
+  .draft-sync-server-card {
+    fill: var(--surface-raised);
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+  }
+
+  .draft-sync-server[data-state='completed'] .draft-sync-server-card {
+    stroke: var(--signal);
+  }
+
+  .draft-sync-server[data-state='reverted'] .draft-sync-server-card {
+    fill: var(--caution-wash);
+    stroke: var(--caution);
+    stroke-width: 2.5;
+  }
+
+  .draft-sync-server-flash {
+    fill: var(--caution-bright);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .draft-sync-server[data-state='reverted'] {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .draft-sync-badge circle {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+  }
+
+  .draft-sync-badge path {
+    stroke: var(--signal);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .draft-sync-server[data-state='completed'] .draft-sync-badge circle {
+    fill: var(--signal-wash);
+    stroke: var(--signal);
+  }
+
+  .draft-sync-server[data-state='reverted'] .draft-sync-badge circle {
+    fill: var(--surface-raised);
+    stroke: var(--caution);
+  }
+
+  .draft-sync-server[data-state='reverted'] .draft-sync-badge path {
+    stroke: var(--caution);
+  }
+
+  .draft-sync-tablet-body {
+    fill: var(--surface);
+    stroke: var(--ink-faint);
+    stroke-width: 1.5;
+  }
+
+  .draft-sync-tablet-screen {
+    fill: var(--surface-sunk);
+    stroke: var(--line);
+  }
+
+  /* A draft the server has not seen: dashed, in caution. */
+  .draft-sync-tablet-screen[data-has-draft] {
+    stroke: var(--caution);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+
+  .draft-sync-signal-frame {
+    fill: transparent;
+    stroke: var(--ink-faint);
+    stroke-width: 1;
+  }
+
+  .draft-sync-signal-fill {
+    fill: var(--signal-bright);
+    stroke: var(--signal-bright);
+    stroke-width: 1;
+  }
+
+  .draft-sync-signal[data-signal='offline'] .draft-sync-signal-fill {
+    opacity: 0;
+  }
+
+  .draft-sync-link {
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 5;
+  }
+
+  .draft-sync-link[data-signal='offline'] {
+    stroke: var(--line);
+  }
+
+  .draft-sync-cut {
+    stroke: var(--caution);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+
+  .draft-sync-guard {
+    stroke: var(--signal);
+    stroke-width: 5;
+    stroke-linecap: round;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .draft-sync-packet-dot {
+    fill: var(--signal-bright);
+    stroke: var(--surface);
+    stroke-width: 2.5;
+  }
+
+  .draft-sync-packet[data-from='A'] .draft-sync-packet-dot {
+    fill: var(--caution-bright);
+  }
+
+  .draft-sync-svg .draft-sync-packet-label {
+    fill: var(--ink);
+    stroke: var(--surface);
+    stroke-width: 4px;
+    paint-order: stroke;
+  }
+
+  .draft-sync-stamp {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .draft-sync-stamp rect {
+    fill: var(--signal-wash);
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  .draft-sync-svg .draft-sync-stamp text {
+    fill: var(--signal);
+  }
+
+  .draft-sync-stamp[data-outcome='reverted'] rect {
+    fill: var(--caution-wash);
+    stroke: var(--caution);
+  }
+
+  .draft-sync-svg .draft-sync-stamp[data-outcome='reverted'] text {
+    fill: var(--caution);
+  }
+
+  /*
+   * Entrances run only where motion is allowed. Under reduced motion the global
+   * rule shortens animations but keeps their delays, which would hold a delayed
+   * stamp at scale 0; here each mark rests final from the first frame instead.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .draft-sync-headline[data-outcome='reverted'],
+    .draft-sync-server[data-state='reverted'] {
+      animation: draft-sync-jolt var(--draft-sync-jolt-duration) var(--ease-out-soft) var(--draft-sync-outcome-delay)
+        both;
+    }
+
+    .draft-sync-server[data-state='reverted'] .draft-sync-server-flash {
+      animation: draft-sync-flash 1.4s ease-out var(--draft-sync-outcome-delay) both;
+    }
+
+    .draft-sync-stamp {
+      animation: draft-sync-stamp 420ms var(--ease-out-soft) var(--draft-sync-outcome-delay) both;
+    }
+
+    .draft-sync-guard {
+      animation: draft-sync-pop 360ms var(--ease-out-soft) 450ms both;
+    }
+
+    /* The bars come back one at a time as the tablet reconnects. */
+    .draft-sync-signal[data-signal='reconnecting'] .draft-sync-signal-fill {
+      animation: draft-sync-bar-in 420ms step-end both;
+    }
+
+    .draft-sync-signal[data-signal='reconnecting'] .draft-sync-signal-bar:nth-child(2) .draft-sync-signal-fill {
+      animation-delay: 140ms;
+    }
+
+    .draft-sync-signal[data-signal='reconnecting'] .draft-sync-signal-bar:nth-child(3) .draft-sync-signal-fill {
+      animation-delay: 280ms;
+    }
+
+    .draft-sync-signal[data-signal='reconnecting'] .draft-sync-signal-bar:nth-child(4) .draft-sync-signal-fill {
+      animation-delay: 420ms;
+    }
+
+    /*
+     * A message in flight. It travels its link and is gone; a rejected one
+     * stops at the guard and falls back. Shown, then hidden in one step — the
+     * label is text and never rests half-faded.
+     */
+    .draft-sync-packet {
+      animation: draft-sync-fly 900ms var(--ease-out-soft) both;
+    }
+
+    .draft-sync-packet[data-delivery='rejected'] {
+      animation: draft-sync-bounce 1500ms var(--ease-out-soft) both;
+    }
+  }
+
+  /* A message is only ever motion; at rest it has arrived, and the log says so. */
+  @media (prefers-reduced-motion: reduce) {
+    .draft-sync-packet {
+      visibility: hidden;
+    }
+  }
+
+  /*
+   * The outcome's entrance plays when the step changes, not on the load frame:
+   * the live simulator replaces a stand-in showing the same step, so the reader
+   * would watch it land twice.
+   */
+  .draft-sync-frame:is([data-draft-sync='static'], [data-first-frame])
+    :is(
+      .draft-sync-stamp,
+      .draft-sync-guard,
+      .draft-sync-headline,
+      .draft-sync-server[data-state='reverted'],
+      .draft-sync-server-flash
+    ) {
+    animation: none;
+  }
+
+  .draft-sync-timeline circle {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 240ms var(--ease-out-soft);
+  }
+
+  .draft-sync-timeline circle[data-state='past'] {
+    fill: var(--signal);
+    stroke: var(--signal);
+  }
+
+  .draft-sync-timeline circle[data-state='current'] {
+    fill: var(--signal-bright);
+    stroke: var(--signal-bright);
+    transform: scale(1.5);
+  }
+
+  .draft-sync-frame[data-outcome='reverted'] .draft-sync-timeline circle[data-state='current'] {
+    fill: var(--caution-bright);
+    stroke: var(--caution-bright);
+  }
+
+  /* The sea drifts with the scroll: decoration only, so it is the one thing --progress moves directly. */
+  .draft-sync-wave-back {
+    fill: color-mix(in oklab, var(--sky-low) 38%, transparent);
+    transform: translateX(calc(var(--progress, 1) * -80px));
+  }
+
+  .draft-sync-wave-front {
+    fill: color-mix(in oklab, var(--sky-mid) 30%, transparent);
+    transform: translateX(calc(var(--progress, 1) * 80px));
+  }
+
+  @keyframes draft-sync-fly {
+    0% {
+      transform: translate(var(--from-x), var(--from-y));
+      opacity: 1;
+    }
+    85% {
+      transform: translate(var(--to-x), var(--to-y));
+      opacity: 1;
+      animation-timing-function: step-end;
+    }
+    100% {
+      transform: translate(var(--to-x), var(--to-y));
+      opacity: 0;
+    }
+  }
+
+  @keyframes draft-sync-bounce {
+    0% {
+      transform: translate(var(--from-x), var(--from-y));
+      opacity: 1;
+    }
+    45% {
+      transform: translate(var(--to-x), var(--to-y));
+    }
+    85% {
+      transform: translate(calc((var(--from-x) + var(--to-x)) / 2), calc((var(--from-y) + var(--to-y)) / 2 + 24px));
+      opacity: 1;
+      animation-timing-function: step-end;
+    }
+    100% {
+      transform: translate(calc((var(--from-x) + var(--to-x)) / 2), calc((var(--from-y) + var(--to-y)) / 2 + 24px));
+      opacity: 0;
+    }
+  }
+
+  @keyframes draft-sync-flash {
+    0% {
+      opacity: 0;
+    }
+    15% {
+      opacity: 0.55;
+    }
+    40% {
+      opacity: 0.1;
+    }
+    55% {
+      opacity: 0.45;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes draft-sync-jolt {
+    0%,
+    100% {
+      transform: none;
+    }
+    20% {
+      transform: translateX(-6px);
+    }
+    40% {
+      transform: translateX(5px);
+    }
+    60% {
+      transform: translateX(-3px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+
+  @keyframes draft-sync-stamp {
+    0% {
+      transform: scale(0);
+    }
+    70% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes draft-sync-pop {
+    0% {
+      transform: scale(0);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes draft-sync-bar-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

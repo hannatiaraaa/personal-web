@@ -32,7 +32,7 @@ export function Practice() {
         {practice.map(({ term, detail }) => (
           <div
             key={term}
-            className='card reveal p-5 sm:p-6'
+            className='card practice-card p-5 sm:p-6'
           >
             <dt className='text-h3 text-ink font-semibold tracking-[-0.015em]'>{term}</dt>
             <dd className='text-meta text-ink-muted mt-2.5'>{detail}</dd>

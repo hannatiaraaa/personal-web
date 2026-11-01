@@ -2,14 +2,9 @@ import { MAX_RIPPLES, RIPPLE_SPACING } from './flow-field';
 import type { GroundHit } from './pointer-plane';
 
 /**
- * The fixed set of live ripples.
- *
- * A ring buffer rather than a list: the shader loops over a constant number of
- * slots, so the queue's size is a GPU constraint and not a policy choice. The
- * oldest ripple is the one overwritten.
- *
- * Pure bookkeeping — it decides *whether* and *where*, and returns the slot to
- * write. Uploading the record is the hook's job.
+ * The fixed set of live ripples: a ring buffer, because the shader loops over a
+ * constant number of slots. The oldest ripple is overwritten. Decides whether
+ * and where; uploading is the hook's job.
  */
 
 export type RippleSlot = {
@@ -28,11 +23,8 @@ export class RippleQueue {
   ) {}
 
   /**
-   * Claims a slot for a touch, or returns `null` to ignore it.
-   *
-   * A deliberate press always lands. A drag only lands once it has travelled
-   * `spacing`, so moving a pointer draws a trail of distinct rings instead of
-   * one smear that overwrites itself every frame.
+   * Claims a slot for a touch, or `null` to ignore it. A press always lands; a
+   * drag lands every `spacing`, so it leaves distinct rings rather than one smear.
    */
   place(hit: GroundHit, deliberate: boolean): RippleSlot | null {
     if (!deliberate && this.last && Math.hypot(hit.x - this.last.x, hit.z - this.last.z) < this.spacing) {

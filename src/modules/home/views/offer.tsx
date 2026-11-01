@@ -7,7 +7,12 @@ import { ArrowIcon } from '@/common/components/icons';
 export function Offer() {
   return (
     <section aria-label='Evidence and contact'>
-      <FigureRow figures={headlineFigures} />
+      {/* Counted as it scrolls in: the opening scene holds the first screen,
+          so a count on load would finish before anyone could see it. */}
+      <FigureRow
+        figures={headlineFigures}
+        animate
+      />
 
       <div className='mt-8 flex flex-wrap items-center gap-x-5 gap-y-4'>
         <Link
@@ -15,7 +20,7 @@ export function Offer() {
           className='btn-primary group'
         >
           Read the case studies
-          <ArrowIcon className='transition-transform duration-300 group-hover:translate-x-1' />
+          <ArrowIcon className='transition-transform duration-200 group-hover:translate-x-1' />
         </Link>
         <a
           href={`mailto:${identity.email}`}

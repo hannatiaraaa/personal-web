@@ -1,15 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { caseStudies, getCaseStudy } from '@/content/case-studies';
-import {
-  CaseStudyHeader,
-  Evidence,
-  nextCaseStudy,
-  NextCaseStudy,
-  ReportedQuote,
-  WhatActuallyWas,
-  WhatShipped,
-} from '@/modules/work';
+import { CaseStudyHeader, CaseStudyStory, nextCaseStudy, NextCaseStudy } from '@/modules/work';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -39,10 +31,7 @@ export default async function CaseStudyPage({ params }: Props) {
   return (
     <article className='space-y-12'>
       <CaseStudyHeader study={study} />
-      <ReportedQuote reported={study.reported} />
-      <WhatActuallyWas study={study} />
-      <WhatShipped study={study} />
-      <Evidence study={study} />
+      <CaseStudyStory study={study} />
       {next && <NextCaseStudy study={next} />}
     </article>
   );

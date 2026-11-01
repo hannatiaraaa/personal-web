@@ -4,7 +4,7 @@ import { CaseStudyPart } from '@/modules/work/components/case-study-part';
 
 export function WhatShipped({ study }: { study: CaseStudy }) {
   return (
-    <CaseStudyPart legend='What shipped'>
+    <CaseStudyPart part='shipped'>
       <ul className='space-y-3'>
         {study.shipped.map((item, index) => (
           <li

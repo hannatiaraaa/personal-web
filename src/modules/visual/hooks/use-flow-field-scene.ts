@@ -1,5 +1,7 @@
 'use client';
 
+// Client: a hook — React state and effects, used only by client components.
+
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import {
   AdditiveBlending,
@@ -19,6 +21,14 @@ import { useInViewport } from '@/common/hooks/use-in-viewport';
 import { usePageVisible } from '@/common/hooks/use-page-visible';
 import { useReducedMotion } from '@/common/hooks/use-reduced-motion';
 import { buildVogelPool, MAX_RIPPLES, POOL_POINTS, POOL_POINTS_MOBILE } from '@/modules/visual/lib/flow-field';
+import {
+  approachValue,
+  introCameraScale,
+  mapScrollToFlowField,
+  parseSceneProgress,
+  pullCamera,
+  SCROLL_RESPONSE,
+} from '@/modules/visual/lib/flow-field-scroll';
 import { createFragmentShader, createVertexShader } from '@/modules/visual/lib/flow-field-shaders';
 import { intersectGroundPlane, unrotateY } from '@/modules/visual/lib/pointer-plane';
 import { RippleQueue } from '@/modules/visual/lib/ripple-queue';
@@ -33,6 +43,7 @@ const POINTER_ROLL = 0.1;
 const POINT_SIZE = 22;
 /** A still frame wants the swell mid-motion, not the flat start. */
 const STILL_TIME = 7.3;
+const PARALLEL_COMPILE = 'KHR_parallel_shader_compile';
 
 const CAMERA = {
   fov: 42,
@@ -56,23 +67,14 @@ function isDarkTheme(): boolean {
 }
 
 /**
- * Runs the pool: one `Points` object over one static buffer, one draw call.
+ * Runs the pool: one `Points` object, one static buffer, one draw call. This
+ * file is wiring; every rule lives in a tested `lib/` module.
  *
- * Owns the WebGL lifecycle and the frame loop, and nothing else. The motion
- * fields are in `lib/flow-field`, the shader source in
- * `lib/flow-field-shaders`, the pointer geometry in `lib/pointer-plane` and the
- * ripple bookkeeping in `lib/ripple-queue` — so everything with a rule in it is
- * unit-tested, and this file is wiring.
- *
- * Two effects on purpose. The first builds the scene and must not re-run when
- * the hero scrolls past — rebuilding recompiles the shaders, recomputes the
- * pool and resets the clock, so the swell would jump backwards every time the
- * tab regained focus. The second only starts and stops the loop.
- *
- * The loop stops when the canvas leaves the viewport or the tab goes to the
- * background. Under reduced motion the water stands still and only a ripple the
- * visitor places redraws it: motion they asked for, not motion they asked to be
- * spared.
+ * Two effects on purpose: the first builds the scene and must not re-run when
+ * the loop pauses (it would recompile shaders and reset the clock, so the swell
+ * jumps back); the second only starts and stops the loop. The loop stops off
+ * screen or in a background tab. Under reduced motion the water stands still
+ * and only a ripple the visitor places redraws it.
  */
 export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>) {
   const reducedMotion = useReducedMotion();
@@ -123,6 +125,8 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
         uColorDeep: { value: new Color() },
         uColorBright: { value: new Color() },
         uOpacity: { value: 1 },
+        uSwellGain: { value: 1 },
+        uDisturbance: { value: 0 },
       },
     });
 
@@ -131,21 +135,37 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
     scene.add(points);
 
     const camera = new PerspectiveCamera(CAMERA.fov, 1, CAMERA.near, CAMERA.far);
-    camera.position.set(...CAMERA.position);
-    camera.lookAt(...CAMERA.target);
+
+    // The camera follows the scene's `--progress`, read per frame rather than
+    // through a listener of its own. Reduced motion is the finished scene.
+    const sceneElement = canvas.closest<HTMLElement>('[data-scene]');
+    const readProgress = () =>
+      reducedMotion || !sceneElement ? 1 : parseSceneProgress(sceneElement.style.getPropertyValue('--progress'));
+    const placeCamera = (progress: number) => {
+      camera.position.set(...pullCamera(CAMERA.position, CAMERA.target, introCameraScale(progress)));
+      camera.lookAt(...CAMERA.target);
+    };
+    placeCamera(readProgress());
 
     let clock = STILL_TIME;
     const queue = new RippleQueue();
     const pointer = { roll: 0, targetRoll: 0 };
+    // Starts at rest, so a reduced-motion still frame is the calm one.
+    const response = { ...mapScrollToFlowField(0) };
 
-    const render = () => renderer.render(scene, camera);
+    // Nothing draws until the shaders compile. Where the driver supports
+    // parallel compile it happens off the main thread, so the first frame is not
+    // one long task mid-hydration; elsewhere the first render compiles them.
+    let isCompiled = false;
+    let isDisposed = false;
+    const render = () => {
+      if (isCompiled) renderer.render(scene, camera);
+    };
 
     const applyTheme = () => {
       const dark = isDarkTheme();
-      // The ramp runs quiet → energetic, and energy has to gain contrast against
-      // its ground: over the dark one it glows brighter (additive cyan), over
-      // the light one it draws in darker ink. Same ramp, opposite ends — added
-      // light on white only goes to white, which lost the crest entirely.
+      // Energy must gain contrast against the ground: brighter additive cyan on
+      // dark, darker ink on light (added light on white only reaches white).
       material.uniforms.uColorDeep!.value = dark
         ? readColour(canvas, '--sky-mid', '#22b8e6')
         : readColour(canvas, '--sky-low', '#7dd3fc');
@@ -237,13 +257,23 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
       points.rotation.y += elapsed * DRIFT_PER_SECOND;
       points.rotation.z = pointer.roll * POINTER_ROLL;
 
+      const progress = readProgress();
+      const target = mapScrollToFlowField(progress);
+      response.disturbance = approachValue(response.disturbance, target.disturbance, SCROLL_RESPONSE.easing);
+      response.swellGain = approachValue(response.swellGain, target.swellGain, SCROLL_RESPONSE.easing);
+      response.tilt = approachValue(response.tilt, target.tilt, SCROLL_RESPONSE.easing);
+      material.uniforms.uDisturbance!.value = response.disturbance;
+      material.uniforms.uSwellGain!.value = response.swellGain;
+      points.rotation.x = response.tilt;
+      placeCamera(progress);
+
       render();
       frameHandle = requestAnimationFrame(renderFrame);
     };
 
     const controls = {
       start: () => {
-        if (frameHandle) return;
+        if (frameHandle || !isCompiled) return;
         // A fresh baseline, or the first frame after a pause would advance the
         // clock by however long the page sat idle.
         lastTime = 0;
@@ -256,9 +286,20 @@ export function useFlowFieldScene(canvasRef: RefObject<HTMLCanvasElement | null>
     };
 
     controlsRef.current = controls;
-    render();
+    const compiled = renderer.extensions.has(PARALLEL_COMPILE)
+      ? renderer.compileAsync(scene, camera)
+      : Promise.resolve(scene);
+    compiled
+      .catch(() => undefined)
+      .then(() => {
+        if (isDisposed) return;
+        isCompiled = true;
+        render();
+        if (animatingRef.current) controls.start();
+      });
 
     return () => {
+      isDisposed = true;
       controls.stop();
       controlsRef.current = null;
       canvas.removeEventListener('pointerdown', onPointerDown);

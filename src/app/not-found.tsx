@@ -11,10 +11,10 @@ export default function NotFound() {
       </p>
       <Link
         href='/work'
-        className='group bg-ink text-meta text-bg mt-6 inline-flex items-center gap-2 rounded-md px-4 py-2.5 font-medium transition-opacity hover:opacity-90'
+        className='btn-primary group mt-6'
       >
         Read the case studies
-        <ArrowIcon className='transition-transform group-hover:translate-x-0.5' />
+        <ArrowIcon className='transition-transform duration-200 group-hover:translate-x-1' />
       </Link>
     </div>
   );

@@ -1,25 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// Client: a hook — React state and effects, used only by client components.
+
+import { REDUCED_MOTION_QUERY } from '@/common/lib/media-queries';
+import { useMediaQuery } from './use-media-query';
 
 /**
- * Whether the visitor has asked for reduced motion.
- *
- * Starts `false` so the server and the first client render agree; the effect
- * corrects it before anything animates. Callers honour it by not running a
- * loop at all, not by running one slower.
+ * Whether the visitor has asked for reduced motion. Callers honour it by not
+ * running a loop at all, not by running one slower.
  */
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(query.matches);
-
-    const onChange = () => setReduced(query.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-
-  return reduced;
+  return useMediaQuery(REDUCED_MOTION_QUERY);
 }

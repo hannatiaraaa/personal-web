@@ -5,7 +5,8 @@ const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 const config = [
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
-    ignores: ['.next/**', 'node_modules/**', 'playwright-report/**', 'test-results/**', 'next-env.d.ts'],
+    // .claude/ holds agent worktrees: whole checkouts with their own .next builds.
+    ignores: ['.next/**', 'node_modules/**', 'playwright-report/**', 'test-results/**', 'next-env.d.ts', '.claude/**'],
   },
 ];
 

@@ -1,4 +1,6 @@
 import type { DiagramKind } from '@/modules/visual/components/diagrams';
+import type { InteractiveKind } from '@/modules/visual/components/interactives';
+import type { StillKind } from '@/modules/home/lib/work-story';
 import { figures } from './facts';
 
 /**
@@ -28,6 +30,10 @@ export type CaseStudy = {
   readonly evidenceNote?: string;
   readonly stack: readonly string[];
   readonly diagram?: DiagramKind;
+  /** A hands-on model or a piece to try, drawn in "What it actually was"; see INTERACTIVE_PLACEMENT. */
+  readonly interactive?: InteractiveKind;
+  /** A drawing of the mechanism where there is no interactive to draw it from; puts the study in the home story. */
+  readonly still?: StillKind;
 };
 
 export const caseStudies: readonly CaseStudy[] = [
@@ -59,6 +65,7 @@ export const caseStudies: readonly CaseStudy[] = [
       'The class is closed rather than the ticket. A stale write cannot land at all now, rather than landing less often.',
     stack: ['React Native', 'Expo', 'WatermelonDB', 'SQLite', 'TypeScript', 'NestJS'],
     diagram: 'draft-ownership',
+    interactive: 'draft-sync',
   },
   {
     slug: 'one-arithmetic-ladder',
@@ -86,6 +93,7 @@ export const caseStudies: readonly CaseStudy[] = [
     evidenceNote: 'One ladder is what makes the rule checkable. A rule per level is a rule per level to test.',
     stack: ['NestJS', 'MySQL', 'Sequelize', 'TypeScript', 'Next.js', 'SAP integration'],
     diagram: 'tax-ladder',
+    interactive: 'tax-ladder-playground',
   },
   {
     slug: 'release-gate-from-zero',
@@ -114,6 +122,7 @@ export const caseStudies: readonly CaseStudy[] = [
     evidenceNote:
       'No production data is required to certify a release — the property the gate was built for, and the one that makes it usable by anyone.',
     stack: ['Playwright', 'MySQL', 'TypeScript', 'NestJS', 'Next.js', 'CI'],
+    interactive: 'release-gate-run',
   },
   {
     slug: 'configurable-approval-engine',
@@ -143,6 +152,7 @@ export const caseStudies: readonly CaseStudy[] = [
     evidenceNote:
       'Named decision owner on the decision records. Every customer since has configured their own hierarchy without a code change.',
     stack: ['NestJS', 'Next.js', 'React Native', 'MySQL', 'TypeScript', 'shared contracts'],
+    interactive: 'approval-engine',
   },
   {
     slug: 'procure-to-pay-migration',
@@ -204,26 +214,3 @@ export const caseStudies: readonly CaseStudy[] = [
 export function getCaseStudy(slug: string): CaseStudy | undefined {
   return caseStudies.find((study) => study.slug === slug);
 }
-
-/**
- * Earlier client work. Real builds, but no divergence between the reported and
- * the actual problem — so they are listed honestly rather than written up as
- * case studies they cannot support.
- */
-export const earlierWork = [
-  {
-    title: 'Interactive 3D product-solutions site',
-    detail: 'Product configurator and scroll-driven 3D scenes for a client web product.',
-    stack: ['three.js', 'GSAP', 'Next.js'],
-  },
-  {
-    title: 'Banking-sector interface',
-    detail: 'Customer-facing interface work for a regional bank.',
-    stack: ['React', 'TypeScript'],
-  },
-  {
-    title: 'Environmental-platform mobile app',
-    detail: 'Mobile client for an environmental data platform.',
-    stack: ['React Native', 'TypeScript'],
-  },
-] as const;

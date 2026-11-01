@@ -25,7 +25,7 @@ export function Mathematics() {
         className='btn-quiet group mt-6'
       >
         Run the model
-        <ArrowIcon className='transition-transform duration-300 group-hover:translate-x-1' />
+        <ArrowIcon className='transition-transform duration-200 group-hover:translate-x-1' />
       </Link>
     </section>
   );

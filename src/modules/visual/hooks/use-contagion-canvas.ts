@@ -1,5 +1,7 @@
 'use client';
 
+// Client: a hook — React state and effects, used only by client components.
+
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useInViewport } from '@/common/hooks/use-in-viewport';
 import { usePageVisible } from '@/common/hooks/use-page-visible';
@@ -22,11 +24,8 @@ const SEED = 20260911;
 /** Frames between readout updates. React does not belong in the frame loop. */
 const REPORT_EVERY = 6;
 /**
- * Frames to settle before drawing the static frame for reduced motion. Enough
- * that the first cohort has passed through recovery, so the still frame shows
- * the endemic mix rather than the seed. Stepped off the commit, because the
- * pair pass is O(n²) and the people who get this path are the ones who asked
- * for less work, not more.
+ * Frames stepped before the reduced-motion still, so it shows the endemic mix
+ * rather than the seed. Stepped after commit: the pair pass is O(n²).
  */
 const SETTLE_FRAMES = 300;
 
@@ -66,13 +65,12 @@ type Controls = {
 };
 
 /**
- * Drives the contagion canvas. Owns the frame loop, the canvas sizing and the
- * palette; owns no model rules — those are in `lib/contagion`.
+ * Drives the contagion canvas: frame loop, sizing and palette; the model rules
+ * are in `lib/contagion`.
  *
- * Two effects on purpose. The first builds the population and the canvas and
- * must not re-run when the figure scrolls past: rebuilding would reseed the
- * epidemic, and a model that restarts every time it leaves the viewport can
- * never show that it settles. The second only starts and stops the loop.
+ * Two effects on purpose: the first builds the population and must not re-run
+ * when the figure scrolls away, or the epidemic reseeds and can never be seen to
+ * settle. The second only starts and stops the loop.
  */
 export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null>, options: Options) {
   const [counts, setCounts] = useState<Tally>(EMPTY_TALLY);
@@ -200,8 +198,7 @@ export function useContagionCanvas(canvasRef: RefObject<HTMLCanvasElement | null
     let sinceReport = 0;
 
     const loop = () => {
-      // A paused loop that keeps scheduling itself is a loop running when
-      // nobody is looking. Pausing stops the frames; Play starts them again.
+      // Pausing stops scheduling frames; Play starts them again.
       if (!runningRef.current) {
         frameHandle = 0;
         return;

@@ -1,2 +1,2 @@
 export * from './delivery';
-export * from './stack-groups';
+export * from './stack-story';

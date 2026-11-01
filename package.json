@@ -9,13 +9,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:budget": "bun scripts/check-budget.ts",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "gate": "bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit && bun run test:e2e",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "gate": "bun run format:check && bun run lint && bun run typecheck && bun run build && bun run check:budget && bun run test:unit && bun run test:e2e",
+    "format": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .prettierignore.local",
+    "format:check": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .prettierignore.local",
     "test:unit": "bun test src"
   },
   "dependencies": {

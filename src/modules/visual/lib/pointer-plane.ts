@@ -1,10 +1,4 @@
-/**
- * Turning a pointer into a position on the pool.
- *
- * Pure geometry, kept out of the hook so it can be tested without a WebGL
- * context: the hook unprojects the pointer through the camera, and these two
- * functions do the rest.
- */
+/** Pointer to pool position: pure geometry, testable without a WebGL context. */
 
 export type Vector = { readonly x: number; readonly y: number; readonly z: number };
 export type GroundHit = { readonly x: number; readonly z: number };
