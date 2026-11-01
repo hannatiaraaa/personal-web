@@ -17,6 +17,8 @@
 
 # misc
 .DS_Store
+# Formatter ignores for this checkout only (see the format scripts).
+.prettierignore.local
 *.pem
 
 # debug
@@ -40,4 +42,4 @@ next-env.d.ts
 /blob-report/
 
 # run-log review screenshots: regenerable, kept on disk not in history
-/docs/private/screens/
+/docs/private/
