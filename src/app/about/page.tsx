@@ -4,7 +4,7 @@ import { Arc, Intro, Mathematics, WorkingStyle } from '@/modules/about';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'How I got from frontend to the end of the pipeline: joined a fleet maintenance and procurement platform as a frontend engineer, picked up the API to own the approval rules end to end, then taught myself Playwright and built the release gate.',
+    'From mathematics research to clinical mobile apps at Nalagenetics and a fleet maintenance and procurement platform: how I went from frontend to owning offline data, the API, ERP integration, the release gate and review.',
 };
 
 export default function AboutPage() {
